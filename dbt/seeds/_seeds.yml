@@ -1,0 +1,14 @@
+version: 2
+
+seeds:
+  - name: bali_calendar
+    description: Kalender bisnis Bali (hari raya dan high season) untuk periode data dummy.
+    config:
+      column_types:
+        date: date
+        event: string
+        is_nyepi: bool
+        is_high_season: bool
+    columns:
+      - name: date
+        data_tests: [unique, not_null]

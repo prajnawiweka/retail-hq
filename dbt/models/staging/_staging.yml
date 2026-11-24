@@ -1,0 +1,545 @@
+version: 2
+
+models:
+  - name: stg_store
+    columns:
+      - name: store_code
+        data_tests:
+          - unique
+          - not_null
+      - name: location_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['wisata', 'perumahan', 'jalan utama', 'dekat kampus']
+      - name: store_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['reguler', 'QSR']
+  - name: stg_product
+    columns:
+      - name: sku
+        data_tests:
+          - unique
+          - not_null
+      - name: supplier_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_supplier')
+                field: supplier_id
+  - name: stg_supplier
+    columns:
+      - name: supplier_id
+        data_tests:
+          - unique
+          - not_null
+  - name: stg_sales_daily
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [sales_date, store_code]
+    columns:
+      - name: sales_date
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_sales_category_daily
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [sales_date, store_code, category]
+    columns:
+      - name: sales_date
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: category
+        data_tests:
+          - not_null
+  - name: stg_sales_sku_weekly
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [week_start, store_code, sku]
+    columns:
+      - name: week_start
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: sku
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_product')
+                field: sku
+  - name: stg_stock_weekly
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [week_start, store_code, sku]
+    columns:
+      - name: week_start
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: sku
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_product')
+                field: sku
+  - name: stg_fixture
+    columns:
+      - name: fixture_id
+        data_tests:
+          - unique
+          - not_null
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_planogram
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [store_code, sku, effective_from]
+    columns:
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: fixture_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_fixture')
+                field: fixture_id
+      - name: sku
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_product')
+                field: sku
+      - name: effective_from
+        data_tests:
+          - not_null
+  - name: stg_display_audit
+    columns:
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: fixture_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_fixture')
+                field: fixture_id
+      - name: sku
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_product')
+                field: sku
+  - name: stg_secondary_display
+    columns:
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: sku
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_product')
+                field: sku
+  - name: stg_purchase_order
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [po_id, sku]
+    columns:
+      - name: po_id
+        data_tests:
+          - not_null
+      - name: supplier_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_supplier')
+                field: supplier_id
+      - name: sku
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_product')
+                field: sku
+  - name: stg_dc_shipment
+    columns:
+      - name: shipment_id
+        data_tests:
+          - unique
+          - not_null
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_employee
+    columns:
+      - name: employee_id
+        data_tests:
+          - unique
+          - not_null
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_shift
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [work_date, employee_id]
+    columns:
+      - name: work_date
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: employee_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_employee')
+                field: employee_id
+  - name: stg_contract
+    columns:
+      - name: contract_id
+        data_tests:
+          - unique
+          - not_null
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: contract_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['sewa', 'izin', 'vendor']
+  - name: stg_capex_project
+    columns:
+      - name: project_id
+        data_tests:
+          - unique
+          - not_null
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: project_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['baru', 'renovasi', 'relokasi']
+  - name: stg_it_asset
+    columns:
+      - name: asset_id
+        data_tests:
+          - unique
+          - not_null
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_it_ticket
+    columns:
+      - name: ticket_id
+        data_tests:
+          - unique
+          - not_null
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_pos_downtime
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [downtime_date, store_code]
+    columns:
+      - name: downtime_date
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_member
+    columns:
+      - name: member_id
+        data_tests:
+          - unique
+          - not_null
+      - name: home_store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: member_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['lokal', 'turis', 'ekspat']
+  - name: stg_member_monthly
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, member_id, store_code]
+    columns:
+      - name: month
+        data_tests:
+          - not_null
+      - name: member_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_member')
+                field: member_id
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_campaign
+    columns:
+      - name: campaign_id
+        data_tests:
+          - unique
+          - not_null
+      - name: target_store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_stock_opname
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [opname_date, store_code, sku]
+    columns:
+      - name: opname_date
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: sku
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_product')
+                field: sku
+  - name: stg_writeoff
+    columns:
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: sku
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_product')
+                field: sku
+      - name: reason
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['rusak', 'expired', 'hilang']
+  - name: stg_pos_void
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [void_date, cashier_id]
+    columns:
+      - name: void_date
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: cashier_id
+        data_tests:
+          - not_null
+  - name: stg_cash_variance
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [variance_date, cashier_id]
+    columns:
+      - name: variance_date
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+      - name: cashier_id
+        data_tests:
+          - not_null
+  - name: stg_energy_monthly
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, store_code]
+    columns:
+      - name: month
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_waste_monthly
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, store_code]
+    columns:
+      - name: month
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_plastic_monthly
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, store_code]
+    columns:
+      - name: month
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_opex_monthly
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, store_code]
+    columns:
+      - name: month
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code
+  - name: stg_budget_monthly
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, store_code]
+    columns:
+      - name: month
+        data_tests:
+          - not_null
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_store')
+                field: store_code

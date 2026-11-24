@@ -1,0 +1,28 @@
+name: retail_hq
+version: "1.0.0"
+config-version: 2
+profile: retail_hq
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # Data dummy berakhir 31 Okt 2026; dipakai untuk "hari ini" di mart (misal sisa hari kontrak)
+  report_date: "2026-10-31"
+
+models:
+  retail_hq:
+    staging:
+      +materialized: view
+      +schema: staging
+    marts:
+      +materialized: table
+      +schema: mart
+
+seeds:
+  retail_hq:
+    +schema: staging

@@ -1,0 +1,15 @@
+# Login memakai akun gcloud (gcloud auth application-default login). Tidak ada key/rahasia di file ini.
+retail_hq:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: "{{ env_var('BQ_DATASET_STAGING', 'staging') }}"
+      location: "{{ env_var('BQ_LOCATION', 'asia-southeast2') }}"
+      threads: 4
+      job_execution_timeout_seconds: 600
+      priority: interactive
+      # Pengaman biaya: satu query maksimal memproses 10 GB (free tier 1 TB/bulan)
+      maximum_bytes_billed: 10000000000

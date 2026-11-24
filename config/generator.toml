@@ -1,0 +1,19 @@
+# Konfigurasi generator data dummy Retail HQ.
+# Seed sama = data sama persis, di Mac maupun Windows.
+
+seed = 42
+start_date = "2024-11-01"
+end_date = "2026-10-31"
+n_sku = 300
+n_members = 30000
+
+# Jumlah toko per kabupaten/kota (total 50)
+[stores_per_regency]
+Denpasar = 14
+Badung = 14
+Gianyar = 7
+Tabanan = 5
+Buleleng = 5
+Klungkung = 2
+Karangasem = 2
+Bangli = 1

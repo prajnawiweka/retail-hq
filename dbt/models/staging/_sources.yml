@@ -1,0 +1,40 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: "{{ env_var('BQ_DATASET_RAW', 'raw') }}"
+    description: Data mentah hasil uv run load-bq (CSV dari generator)
+    tables:
+      - name: dim_store
+      - name: dim_product
+      - name: dim_supplier
+      - name: fact_sales_daily
+      - name: fact_sales_category_daily
+      - name: fact_sales_sku_weekly
+      - name: fact_stock_weekly
+      - name: dim_fixture
+      - name: fact_planogram
+      - name: fact_display_audit
+      - name: fact_secondary_display
+      - name: fact_purchase_order
+      - name: fact_dc_shipment
+      - name: dim_employee
+      - name: fact_shift
+      - name: dim_contract
+      - name: fact_capex_project
+      - name: dim_it_asset
+      - name: fact_it_ticket
+      - name: fact_pos_downtime
+      - name: dim_member
+      - name: fact_member_monthly
+      - name: fact_campaign
+      - name: fact_stock_opname
+      - name: fact_writeoff
+      - name: fact_pos_void
+      - name: fact_cash_variance
+      - name: fact_energy_monthly
+      - name: fact_waste_monthly
+      - name: fact_plastic_monthly
+      - name: fact_opex_monthly
+      - name: fact_budget_monthly

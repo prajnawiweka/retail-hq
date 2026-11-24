@@ -1,0 +1,105 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: Kalender harian dengan hari raya Bali dan high season.
+    columns:
+      - name: date
+        data_tests: [unique, not_null]
+
+  - name: dim_store
+    description: Master toko + umur toko dan flag toko baru.
+    columns:
+      - name: store_code
+        data_tests: [unique, not_null]
+
+  - name: fct_sales_store_daily
+    description: Penjualan toko per hari buka. AMB = net_sales / std; achievement = net_sales / target_spd.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [sales_date, store_code]
+
+  - name: mart_store_monthly
+    description: >
+      Tabel utama per bulan x toko untuk dashboard dan semua agent: penjualan, margin, achievement,
+      opex & EBITDA, HR, OOS, loss prevention, IT, ESG, kepatuhan display.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, store_code]
+    columns:
+      - name: store_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_store')
+                field: store_code
+
+  - name: mart_category_monthly
+    description: Penjualan dan margin per bulan x toko x kategori, termasuk kontribusi dan YoY.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, store_code, category]
+
+  - name: mart_oos_weekly
+    description: Ketersediaan stok per minggu x toko x SKU. OOS, SOH 0 dan di bawah min stock dibedakan.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [week_start, store_code, sku]
+
+  - name: mart_supplier_monthly
+    description: Fill rate dan ketepatan waktu supplier per bulan PO.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, supplier_id]
+
+  - name: mart_dc_store_monthly
+    description: Kinerja pengiriman DC ke toko per bulan.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, store_code]
+
+  - name: mart_cashier_monthly
+    description: Void, refund dan selisih kas per kasir per bulan.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, cashier_id]
+
+  - name: mart_member_monthly
+    description: Member aktif, retensi dan belanja per bulan x tipe member.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, member_type]
+
+  - name: mart_campaign_performance
+    description: Uplift dan ROI campaign dibanding baseline 28 hari sebelum campaign.
+    columns:
+      - name: campaign_id
+        data_tests: [unique, not_null]
+
+  - name: mart_planogram_compliance_monthly
+    description: Kepatuhan display per bulan x toko (facing, price tag, shelf talker).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, store_code]
+
+  - name: mart_contract_status
+    description: Kontrak sewa, izin dan vendor dengan sisa hari per report_date.
+    columns:
+      - name: contract_id
+        data_tests: [unique, not_null]
+
+  - name: mart_store_dev
+    description: Proyek capex dan payback toko baru.
+    columns:
+      - name: project_id
+        data_tests: [unique, not_null]
