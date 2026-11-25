@@ -8,6 +8,7 @@ select
     sum(po.qty_ordered)                                             as qty_ordered,
     sum(po.qty_received)                                            as qty_received,
     safe_divide(sum(po.qty_received), sum(po.qty_ordered))          as fill_rate,
+    countif(po.received_date <= po.expected_date)                   as on_time_lines,
     avg(if(po.received_date <= po.expected_date, 1, 0))             as on_time_rate,
     avg(date_diff(po.received_date, po.expected_date, day))         as avg_delay_days
 from {{ ref('stg_purchase_order') }} po

@@ -80,7 +80,9 @@ downtime as (
 ),
 display as (
     select date_trunc(audit_date, month) as month, store_code,
-           avg(if(actual_facings >= planned_facings, 1, 0)) as display_compliance
+           avg(if(actual_facings >= planned_facings, 1, 0)) as display_compliance,
+           count(*) as audited_items,
+           countif(actual_facings >= planned_facings) as compliant_items
     from {{ ref('stg_display_audit') }}
     group by 1, 2
 )
@@ -118,6 +120,9 @@ select
     safe_divide(sh.overtime_hours, sh.hours_worked)                   as overtime_ratio,
     safe_divide(s.net_sales, sh.hours_worked + sh.overtime_hours)     as sales_per_labor_hour,
     -- Supply Chain
+    k.sku_weeks,
+    k.oos_sku_weeks,
+    k.soh_zero_sku_weeks,
     safe_divide(k.oos_sku_weeks, k.sku_weeks)                         as oos_rate,
     safe_divide(k.soh_zero_sku_weeks, k.sku_weeks)                    as soh_zero_rate,
     -- Loss Prevention
@@ -141,7 +146,9 @@ select
     safe_divide(ws.recycled_kg, ws.general_waste_kg + ws.food_waste_kg) as recycle_rate,
     pl.plastic_bags_used, pl.plastic_bags_sold,
     -- Planogram
-    d.display_compliance
+    d.display_compliance,
+    d.audited_items,
+    d.compliant_items
 from sales s
 join {{ ref('dim_store') }} st on st.store_code = s.store_code
 left join sales ly on ly.store_code = s.store_code and ly.month = date_sub(s.month, interval 1 year)

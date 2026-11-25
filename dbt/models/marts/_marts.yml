@@ -103,3 +103,10 @@ models:
     columns:
       - name: project_id
         data_tests: [unique, not_null]
+
+  - name: mart_oos_sku_monthly
+    description: Ringkasan OOS per bulan x SKU (jumlah toko terdampak, SOH 0, estimasi lost sales).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, sku]
