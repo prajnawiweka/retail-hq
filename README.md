@@ -9,7 +9,7 @@ Stack: Python (uv) → BigQuery (raw/staging/mart) → dbt Core → Google ADK +
 - [x] Tahap 1a: generator data dummy (32 tabel, 2 tahun, seed tetap)
 - [x] Tahap 1b: load ke BigQuery (`uv run load-bq`)
 - [x] Tahap 1c: dbt staging + mart + tests (`uv run dbt-rhq build`)
-- [ ] Tahap 2: dashboard Looker Studio + HTML
+- [x] Tahap 2: dashboard Looker Studio + HTML (`uv run export-dashboard`)
 - [ ] Tahap 3: 13 agent + bot Telegram
 - [ ] Tahap 4: Data Mode (upload data asli, validasi, reset)
 - [ ] Tahap 5: deploy Cloud Run + dokumentasi
@@ -26,6 +26,17 @@ uv run dbt-rhq build          # seed + staging + mart + semua test
 ```
 
 Setup akun dan install lengkap: [docs/SETUP.md](docs/SETUP.md).
+
+## Dashboard HTML
+
+Satu file HTML tanpa dependensi (SVG manual, tanpa CDN): 5 halaman (Ringkasan, Operation, Merchandise, Finance, Supply Chain), filter bulan, kabupaten, AM, lokasi, dan tipe toko. Rasio dihitung ulang dari jumlah di browser, sama seperti Looker Studio.
+
+```bash
+uv run export-dashboard               # tarik mart dari BigQuery, tulis dashboard/data.json + dist/index.html
+uv run export-dashboard --build-only  # build ulang HTML dari data.json (tanpa query)
+```
+
+Buka `dashboard/dist/index.html` langsung di browser. Spesifikasi Looker Studio: [docs/LOOKER_SPEC.md](docs/LOOKER_SPEC.md).
 
 ## Data dummy
 

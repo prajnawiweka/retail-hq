@@ -16,6 +16,7 @@ dependencies = [
 generate-data = "retailhq_data.__main__:main"
 load-bq = "retailhq_data.load_bq:main"
 dbt-rhq = "retailhq_data.dbt_cli:main"
+export-dashboard = "retailhq_data.export_dashboard:main"
 
 [build-system]
 requires = ["hatchling"]

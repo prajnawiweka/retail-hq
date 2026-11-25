@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retail HQ — Dashboard</title>
+<style>
+:root {
+  --bg: #f7f7f6;
+  --surface: #ffffff;
+  --line: #e8e8e6;
+  --line-strong: #d9d9d6;
+  --text: #18181b;
+  --text-2: #6b6b70;
+  --text-3: #9a9a9f;
+  --accent: #257de0;
+  --accent-soft: #eaf2fc;
+  --muted-series: #b9b9bd;
+  --s2: #f47230;
+  --s3: #00b894;
+  --s4: #f2a600;
+  --s5: #6a4ce2;
+  --good: #0a7d2c;
+  --good-bg: #e7f4eb;
+  --bad: #c8322f;
+  --bad-bg: #fbeaea;
+  --warn-bg: #fdf3e1;
+  --radius: 10px;
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+button, select { font: inherit; color: inherit; }
+
+/* ---------- layout ---------- */
+.app { display: grid; grid-template-columns: 216px 1fr; min-height: 100vh; background: linear-gradient(to right, var(--surface) 216px, var(--bg) 216px); }
+.side {
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  padding: 18px 12px;
+  position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column; gap: 22px;
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
+.brand-mark {
+  width: 26px; height: 26px; border-radius: 7px; background: var(--text);
+  color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 12px;
+}
+.brand-name { font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
+.brand-sub { color: var(--text-3); font-size: 11.5px; }
+.nav-label { color: var(--text-3); font-size: 11px; padding: 0 8px 6px; letter-spacing: .02em; }
+.nav { display: flex; flex-direction: column; gap: 1px; }
+.nav button {
+  all: unset; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 8px; border-radius: 7px; color: var(--text-2); font-size: 13px;
+}
+.nav button:hover { background: var(--bg); color: var(--text); }
+.nav button[aria-current="page"] { background: var(--bg); color: var(--text); font-weight: 500; }
+.nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.nav .kbd { color: var(--text-3); font-size: 11px; }
+.side-foot { margin-top: auto; padding: 0 8px; color: var(--text-3); font-size: 11.5px; }
+
+.main { min-width: 0; }
+.top {
+  position: sticky; top: 0; z-index: 5;
+  background: rgba(247,247,246,.92); backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 28px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.top h1 { font-size: 15px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.top .crumb { color: var(--text-3); font-weight: 400; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; align-items: center; }
+.field { position: relative; }
+.field select {
+  appearance: none; -webkit-appearance: none;
+  height: 30px; padding: 0 28px 0 10px; border: 1px solid var(--line-strong);
+  border-radius: 7px; background: var(--surface); font-size: 12.5px; cursor: pointer; max-width: 190px;
+}
+.field::after {
+  content: ""; position: absolute; right: 11px; top: 12px; width: 5px; height: 5px;
+  border-right: 1.5px solid var(--text-2); border-bottom: 1.5px solid var(--text-2);
+  transform: rotate(45deg); pointer-events: none;
+}
+.field select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sep { width: 1px; height: 18px; background: var(--line-strong); margin: 0 4px; }
+.reset { all: unset; cursor: pointer; color: var(--text-2); font-size: 12.5px; padding: 0 6px; }
+.reset:hover { color: var(--text); }
+
+.content { padding: 22px 28px 48px; display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr); max-width: 1440px; }
+.span-12 { grid-column: span 12; } .span-8 { grid-column: span 8; } .span-7 { grid-column: span 7; }
+.span-6 { grid-column: span 6; } .span-5 { grid-column: span 5; } .span-4 { grid-column: span 4; }
+
+/* ---------- cards ---------- */
+.card.top { align-self: start; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+.card-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 16px 0; }
+.card-t { font-size: 13px; font-weight: 600; margin: 0; }
+.card-s { color: var(--text-3); font-size: 12px; }
+.card-b { padding: 12px 16px 16px; }
+.legend { display: flex; gap: 14px; color: var(--text-2); font-size: 12px; }
+.legend i { display: inline-block; width: 10px; height: 2px; vertical-align: middle; margin-right: 6px; border-radius: 1px; }
+.legend i.box { height: 10px; width: 10px; border-radius: 3px; }
+
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); }
+.tiles.five { grid-template-columns: repeat(5, 1fr); }
+.tiles.six { grid-template-columns: repeat(6, 1fr); }
+.tile { padding: 14px 16px 15px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.tile-l { color: var(--text-2); font-size: 12px; }
+.tile-v { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-top: 4px; }
+.tile-d { font-size: 11.5px; margin-top: 2px; color: var(--text-3); }
+.up { color: var(--good); } .down { color: var(--bad); }
+
+/* ---------- tables ---------- */
+.tbl-wrap { overflow: auto; max-height: 420px; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th {
+  text-align: left; font-weight: 500; color: var(--text-2); font-size: 12px;
+  padding: 8px 10px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface);
+  white-space: nowrap; cursor: pointer; user-select: none;
+}
+th.num, td.num { text-align: right; }
+th[aria-sort="ascending"]::after { content: " ↑"; color: var(--text-3); }
+th[aria-sort="descending"]::after { content: " ↓"; color: var(--text-3); }
+td { padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: #fafafa; }
+td .sub { color: var(--text-3); }
+.pill { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11.5px; font-weight: 500; }
+.pill.bad { background: var(--bad-bg); color: var(--bad); }
+.pill.good { background: var(--good-bg); color: var(--good); }
+.pill.warn { background: var(--warn-bg); color: #8a5a00; }
+.cellbar { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.cellbar .track { display: block; width: 70px; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.cellbar .fill { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+
+/* ---------- charts ---------- */
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; overflow: visible; }
+.chart .axis text { fill: var(--text-3); font-size: 11px; }
+.chart .grid line { stroke: var(--line); stroke-width: 1; }
+.chart .base { stroke: var(--line-strong); }
+.hbar-row { display: grid; grid-template-columns: 150px 1fr 64px; align-items: center; gap: 10px; padding: 4px 0; font-size: 12.5px; }
+.hbar-row .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.hbar-row .lbl .sub { color: var(--text-3); }
+.hbar-row .trk { position: relative; height: 8px; background: var(--bg); border-radius: 4px; }
+.hbar-row .bar { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 4px; }
+.hbar-row .bar.low { background: var(--s2); }
+.hbar-row .ref { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--text); }
+.hbar-row .val { text-align: right; font-variant-numeric: tabular-nums; }
+.ref-note { color: var(--text-3); font-size: 11.5px; margin-top: 8px; }
+
+.tip {
+  position: fixed; z-index: 50; pointer-events: none; background: var(--text); color: #fff;
+  border-radius: 7px; padding: 8px 10px; font-size: 12px; line-height: 1.5; min-width: 140px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12); opacity: 0; transition: opacity .08s;
+}
+.tip b { font-weight: 500; }
+.tip .row { display: flex; justify-content: space-between; gap: 14px; }
+.tip .k { color: #b8b8bd; display: flex; align-items: center; gap: 6px; }
+.tip .k i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.note { color: var(--text-3); font-size: 11.5px; }
+.empty { color: var(--text-3); padding: 24px 0; text-align: center; }
+
+@media (max-width: 1100px) {
+  .app { grid-template-columns: 1fr; }
+  .side { position: static; height: auto; flex-direction: row; align-items: center; overflow-x: auto; padding: 10px 14px; }
+  .nav { flex-direction: row; }
+  .nav-label, .side-foot, .brand-sub { display: none; }
+  .content > * { grid-column: span 12 !important; }
+  .tiles, .tiles.five, .tiles.six { grid-template-columns: repeat(2, 1fr); }
+}
+@media print { .side, .filters { display: none; } .app { grid-template-columns: 1fr; } .top { position: static; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark">RH</div>
+      <div><div class="brand-name">Retail HQ</div><div class="brand-sub">50 toko · Bali</div></div>
+    </div>
+    <div>
+      <div class="nav-label">Dashboard</div>
+      <nav class="nav" id="nav"></nav>
+    </div>
+    <div class="side-foot" id="foot"></div>
+  </aside>
+  <main class="main">
+    <header class="top">
+      <h1 id="title"></h1>
+      <div class="filters" id="filters"></div>
+    </header>
+    <section class="content" id="content"></section>
+  </main>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const EMBEDDED = /*__DATA__*/null;
+
+/* ================= data ================= */
+const toObjs = t => t.rows.map(r => Object.fromEntries(t.cols.map((c, i) => [c, r[i]])));
+let D;
+const PAGES = [
+  { id: "ringkasan", name: "Ringkasan" },
+  { id: "operation", name: "Operation" },
+  { id: "merchandise", name: "Merchandise" },
+  { id: "finance", name: "Finance" },
+  { id: "supply", name: "Supply Chain" },
+];
+const DIMS = [
+  { key: "regency", label: "Semua kabupaten" },
+  { key: "am_name", label: "Semua AM" },
+  { key: "location_type", label: "Semua lokasi" },
+  { key: "store_type", label: "Semua tipe toko" },
+];
+const state = { page: "ringkasan", from: null, to: null, regency: "", am_name: "", location_type: "", store_type: "" };
+
+/* ================= format ================= */
+const nf = (d = 0) => new Intl.NumberFormat("id-ID", { minimumFractionDigits: d, maximumFractionDigits: d });
+function rp(v, short = true) {
+  if (v == null || !isFinite(v)) return "–";
+  const a = Math.abs(v), s = v < 0 ? "−" : "";
+  if (!short) return s + "Rp " + nf(0).format(a);
+  if (a >= 1e12) return s + "Rp " + nf(1).format(a / 1e12) + " T";
+  if (a >= 1e9) return s + "Rp " + nf(1).format(a / 1e9) + " M";
+  if (a >= 1e6) return s + "Rp " + nf(1).format(a / 1e6) + " jt";
+  if (a >= 1e3) return s + "Rp " + nf(0).format(a / 1e3) + " rb";
+  return s + "Rp " + nf(0).format(a);
+}
+const pct = (v, d = 1) => v == null || !isFinite(v) ? "–" : (v < 0 ? "−" : "") + nf(d).format(Math.abs(v) * 100) + "%";
+const pctAxis = v => pct(v, Math.abs(v * 100 - Math.round(v * 100)) > 1e-6 ? 1 : 0);
+const num = (v, d = 0) => v == null || !isFinite(v) ? "–" : nf(d).format(v);
+const MONTHS = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const mLabel = m => MONTHS[+m.slice(5, 7) - 1] + " " + m.slice(2, 4);
+const mLong = m => MONTHS[+m.slice(5, 7) - 1] + " " + m.slice(0, 4);
+const div = (a, b) => b ? a / b : null;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shiftYear = (m, n) => (+m.slice(0, 4) + n) + m.slice(4);
+
+/* ================= selectors ================= */
+function storeSet() {
+  return new Set(D.stores.filter(s => DIMS.every(d => !state[d.key] || s[d.key] === state[d.key])).map(s => s.store_code));
+}
+const inRange = (m, from = state.from, to = state.to) => m >= from && m <= to;
+function sumBy(rows, fields) {
+  const o = Object.fromEntries(fields.map(f => [f, 0]));
+  for (const r of rows) for (const f of fields) o[f] += r[f] || 0;
+  return o;
+}
+function groupBy(rows, keyFn) {
+  const m = new Map();
+  for (const r of rows) { const k = keyFn(r); if (!m.has(k)) m.set(k, []); m.get(k).push(r); }
+  return m;
+}
+const SM_SUM = ["open_days","net_sales","target_sales","gross_profit","std","rent","salary","utilities","maintenance","promo_cost","it_cost","other_cost","total_opex","budget_opex","sku_weeks","oos_sku_weeks","soh_zero_sku_weeks","compliant_items","audited_items"];
+function kpis(s) {
+  const ebitda = s.gross_profit - s.total_opex;
+  return {
+    net_sales: s.net_sales, spd: div(s.net_sales, s.open_days), std_day: div(s.std, s.open_days),
+    amb: div(s.net_sales, s.std), ach: div(s.net_sales, s.target_sales), gm: div(s.gross_profit, s.net_sales),
+    ebitda, ebitda_pct: div(ebitda, s.net_sales), rent_pct: div(s.rent, s.net_sales), labor_pct: div(s.salary, s.net_sales),
+    opex_budget: div(s.total_opex, s.budget_opex), oos: div(s.oos_sku_weeks, s.sku_weeks),
+    soh0: div(s.soh_zero_sku_weeks, s.sku_weeks), display: div(s.compliant_items, s.audited_items), target: s.target_sales,
+  };
+}
+function smRows(py = false) {
+  const S = storeSet();
+  const from = py ? shiftYear(state.from, -1) : state.from, to = py ? shiftYear(state.to, -1) : state.to;
+  return D.store_monthly.filter(r => S.has(r.store_code) && inRange(r.month, from, to));
+}
+const storeOf = code => D.storeMap.get(code);
+
+/* ================= tooltip ================= */
+const tip = document.getElementById("tip");
+function showTip(html, x, y) {
+  tip.innerHTML = html; tip.style.opacity = 1;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(x + 14, innerWidth - w - 8) + "px";
+  tip.style.top = Math.max(8, y - h - 12) + "px";
+}
+const hideTip = () => { tip.style.opacity = 0; };
+const tipRow = (k, v, c) => `<div class="row"><span class="k">${c ? `<i style="background:${c}"></i>` : ""}${esc(k)}</span><b>${v}</b></div>`;
+
+/* ================= charts (plain SVG) ================= */
+const NS = "http://www.w3.org/2000/svg";
+function niceMax(v) {
+  if (v <= 0) return 1;
+  const e = Math.pow(10, Math.floor(Math.log10(v))), f = v / e;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e;
+}
+function ticks(min, max, n = 4) {
+  const step = niceMax((max - min) / n);
+  const out = []; for (let v = Math.ceil(min / step) * step; v <= max + 1e-9; v += step) out.push(+v.toFixed(10));
+  return out;
+}
+/*
+  xyChart: bars and/or lines on ONE y-axis.
+  opts: { labels, series:[{name,type:'bar'|'line',values,color,stack?}], yFmt, tipFmt, height, yMin, yMax, refLine:{value,label}, xEvery }
+*/
+function xyChart(el, o) {
+  const H = o.height || 220, pad = { l: 56, r: 12, t: 10, b: 26 };
+  const W = Math.max(320, Math.floor(el.getBoundingClientRect().width) || 600);
+  const n = o.labels.length;
+  const bars = o.series.filter(s => s.type === "bar"), lines = o.series.filter(s => s.type !== "bar");
+  const stacked = bars.length > 1 && bars.every(s => s.stack);
+  let vmax = 0, vmin = o.yMin ?? 0;
+  for (let i = 0; i < n; i++) {
+    if (stacked) vmax = Math.max(vmax, bars.reduce((a, s) => a + (s.values[i] || 0), 0));
+    else bars.forEach(s => vmax = Math.max(vmax, s.values[i] ?? 0));
+    lines.forEach(s => { if (s.values[i] != null) { vmax = Math.max(vmax, s.values[i]); vmin = Math.min(vmin, s.values[i]); } });
+  }
+  if (o.refLine) vmax = Math.max(vmax, o.refLine.value);
+  const ymax = o.yMax ?? niceMax(vmax * 1.05);
+  const ymin = vmin < 0 ? -niceMax(-vmin * 1.1) : vmin;
+  const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+  const x = i => pad.l + (i + 0.5) * iw / n;
+  const y = v => pad.t + ih - (v - ymin) / (ymax - ymin) * ih;
+  const bw = Math.max(2, Math.min(28, iw / n * (bars.length > 1 && !stacked ? 0.8 / bars.length : 0.56)));
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria || "")}">`;
+  s += `<g class="grid">`;
+  const tk = ticks(ymin, ymax);
+  tk.forEach(t => { s += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(t)}" y2="${y(t)}" class="${t === 0 ? "base" : ""}"/>`; });
+  s += `</g><g class="axis">`;
+  tk.forEach(t => { s += `<text x="${pad.l - 8}" y="${y(t) + 3.5}" text-anchor="end">${o.yFmt(t)}</text>`; });
+  const every = o.xEvery || Math.ceil(n / Math.max(2, Math.floor(iw / 64)));
+  o.labels.forEach((l, i) => { if (i % every === 0) s += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${esc(o.xFmt ? o.xFmt(l) : l)}</text>`; });
+  s += `</g>`;
+  // bars
+  for (let i = 0; i < n; i++) {
+    let acc = 0;
+    bars.forEach((b, bi) => {
+      const v = b.values[i]; if (v == null) return;
+      let bx, y0, y1;
+      if (stacked) { y0 = y(acc); acc += v; y1 = y(acc); bx = x(i) - bw / 2; }
+      else { bx = x(i) - (bw * bars.length) / 2 + bi * bw; y0 = y(Math.max(0, ymin)); y1 = y(v); }
+      const top = Math.min(y0, y1), h = Math.abs(y0 - y1);
+      const gap = stacked && bi > 0 ? 1 : 0;
+      const isTop = !stacked || bi === bars.length - 1;
+      const r = isTop ? Math.min(3, bw / 2, h) : 0;
+      const w = stacked ? bw : bw - (bars.length > 1 ? 2 : 0);
+      if (r) s += `<path d="M${bx},${top + h - gap} V${top + r} Q${bx},${top} ${bx + r},${top} H${bx + w - r} Q${bx + w},${top} ${bx + w},${top + r} V${top + h - gap} Z" fill="${b.color}" data-i="${i}"/>`;
+      else s += `<rect x="${bx}" y="${top}" width="${w}" height="${Math.max(0, h - gap)}" fill="${b.color}" data-i="${i}"/>`;
+    });
+  }
+  // ref line
+  if (o.refLine) {
+    const ry = y(o.refLine.value);
+    s += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${ry}" y2="${ry}" stroke="var(--text)" stroke-width="1"/>`;
+    s += `<text x="${W - pad.r}" y="${ry - 5}" text-anchor="end" font-size="11" fill="var(--text-2)">${esc(o.refLine.label)}</text>`;
+  }
+  // lines
+  lines.forEach(l => {
+    let d = "", pen = false;
+    l.values.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? "L" : "M") + x(i).toFixed(1) + "," + y(v).toFixed(1); pen = true; });
+    s += `<path d="${d}" fill="none" stroke="${l.color}" stroke-width="${l.width || 2}" stroke-linejoin="round" stroke-linecap="round" ${l.dash ? `stroke-dasharray="${l.dash}"` : ""}/>`;
+  });
+  s += `<line class="xh" x1="0" x2="0" y1="${pad.t}" y2="${pad.t + ih}" stroke="var(--line-strong)" visibility="hidden"/>`;
+  s += `<g class="dots"></g>`;
+  s += `<rect x="${pad.l}" y="${pad.t}" width="${iw}" height="${ih}" fill="transparent" class="hit"/>`;
+  s += `</svg>`;
+  el.innerHTML = s;
+  const svg = el.querySelector("svg"), xh = svg.querySelector(".xh"), dots = svg.querySelector(".dots");
+  const hit = svg.querySelector(".hit");
+  hit.addEventListener("mousemove", ev => {
+    const pt = svg.getBoundingClientRect(), sx = (ev.clientX - pt.left) * W / pt.width;
+    const i = Math.max(0, Math.min(n - 1, Math.floor((sx - pad.l) / (iw / n))));
+    xh.setAttribute("x1", x(i)); xh.setAttribute("x2", x(i)); xh.setAttribute("visibility", lines.length ? "visible" : "hidden");
+    dots.innerHTML = lines.map(l => l.values[i] == null ? "" : `<circle cx="${x(i)}" cy="${y(l.values[i])}" r="4" fill="${l.color}" stroke="#fff" stroke-width="2"/>`).join("");
+    svg.querySelectorAll("[data-i]").forEach(b => b.setAttribute("opacity", +b.dataset.i === i ? 1 : 0.45));
+    const rows = o.series.slice().reverse().map(se => tipRow(se.name, (se.fmt || o.tipFmt || o.yFmt)(se.values[i]), se.color)).join("");
+    showTip(`<div style="margin-bottom:4px;color:#b8b8bd">${esc(o.tipTitle ? o.tipTitle(o.labels[i], i) : (o.xFmt ? o.xFmt(o.labels[i]) : o.labels[i]))}</div>${rows}${o.tipExtra ? o.tipExtra(i) : ""}`, ev.clientX, ev.clientY);
+  });
+  hit.addEventListener("mouseleave", () => {
+    xh.setAttribute("visibility", "hidden"); dots.innerHTML = ""; hideTip();
+    svg.querySelectorAll("[data-i]").forEach(b => b.setAttribute("opacity", 1));
+  });
+}
+function legend(items) {
+  return `<div class="legend">${items.map(([n, c, box]) => `<span><i class="${box ? "box" : ""}" style="background:${c}"></i>${esc(n)}</span>`).join("")}</div>`;
+}
+function hbars(el, rows, o) {
+  // rows: [{label, sub, value, tip}]
+  const max = o.max ?? Math.max(...rows.map(r => r.value), o.ref?.value || 0) * 1.02;
+  el.innerHTML = rows.length ? rows.map((r, i) => `
+    <div class="hbar-row" data-i="${i}">
+      <div class="lbl" title="${esc(r.label)}">${esc(r.label)}${r.sub ? ` <span class="sub">${esc(r.sub)}</span>` : ""}</div>
+      <div class="trk"><div class="bar ${o.low && o.low(r) ? "low" : ""}" style="width:${Math.max(0, r.value) / max * 100}%"></div>
+      ${o.ref ? `<div class="ref" style="left:${o.ref.value / max * 100}%"></div>` : ""}</div>
+      <div class="val">${o.fmt(r.value)}</div>
+    </div>`).join("") + (o.ref ? `<div class="ref-note">Garis vertikal: ${esc(o.ref.label)}</div>` : "")
+    : `<div class="empty">Tidak ada data</div>`;
+  el.querySelectorAll(".hbar-row").forEach(row => {
+    const r = rows[+row.dataset.i]; if (!r.tip) return;
+    row.addEventListener("mousemove", ev => showTip(r.tip, ev.clientX, ev.clientY));
+    row.addEventListener("mouseleave", hideTip);
+  });
+}
+/* table with click-to-sort */
+function table(el, cols, rows, o = {}) {
+  let sortKey = o.sort?.[0], dir = o.sort?.[1] || "desc";
+  const draw = () => {
+    const sorted = rows.slice();
+    if (sortKey) {
+      const c = cols.find(c => c.key === sortKey);
+      const val = c.sortVal || (r => r[sortKey]);
+      sorted.sort((a, b) => {
+        const va = val(a), vb = val(b);
+        if (va == null) return 1; if (vb == null) return -1;
+        return (va < vb ? -1 : va > vb ? 1 : 0) * (dir === "asc" ? 1 : -1);
+      });
+    }
+    const lim = o.limit ? sorted.slice(0, o.limit) : sorted;
+    el.innerHTML = `<div class="tbl-wrap" style="${o.maxH ? `max-height:${o.maxH}px` : ""}"><table><thead><tr>${cols.map(c =>
+      `<th class="${c.num ? "num" : ""}" data-k="${c.key}" ${c.key === sortKey ? `aria-sort="${dir === "asc" ? "ascending" : "descending"}"` : ""}>${esc(c.label)}</th>`).join("")}</tr></thead>
+      <tbody>${lim.length ? lim.map(r => `<tr>${cols.map(c => `<td class="${c.num ? "num" : ""}">${c.html ? c.html(r) : esc(c.fmt ? c.fmt(r[c.key]) : r[c.key])}</td>`).join("")}</tr>`).join("")
+      : `<tr><td colspan="${cols.length}" class="empty">Tidak ada data</td></tr>`}</tbody></table></div>`;
+    el.querySelectorAll("th").forEach(th => th.addEventListener("click", () => {
+      const k = th.dataset.k; if (k === sortKey) dir = dir === "asc" ? "desc" : "asc"; else { sortKey = k; dir = "desc"; }
+      draw();
+    }));
+  };
+  draw();
+}
+const cellBar = (v, max, txt) => `<span class="cellbar">${txt}<span class="track"><span class="fill" style="width:${Math.max(0, Math.min(1, v / max)) * 100}%"></span></span></span>`;
+function achPill(v) {
+  if (v == null) return "–";
+  if (v >= 1) return `<span class="pill good">${pct(v)}</span>`;
+  if (v < 0.95) return `<span class="pill bad">${pct(v)}</span>`;
+  return pct(v);
+}
+const signed = (v, fmt = pct) => v == null ? "–" : `<span class="${v >= 0 ? "up" : "down"}">${v >= 0 ? "+" : ""}${fmt(v)}</span>`;
+
+/* ================= tiles ================= */
+function tile(label, value, cur, prev, o = {}) {
+  let d = "";
+  if (prev != null && cur != null && isFinite(prev) && prev !== 0) {
+    const ch = o.pp ? cur - prev : cur / prev - 1;
+    const good = o.lowerBetter ? ch <= 0 : ch >= 0;
+    const txt = o.pp ? (ch >= 0 ? "+" : "−") + nf(1).format(Math.abs(ch) * 100) + " pp" : (ch >= 0 ? "+" : "−") + nf(1).format(Math.abs(ch) * 100) + "%";
+    d = `<span class="${good ? "up" : "down"}">${txt}</span> vs tahun lalu`;
+  } else if (o.note) d = o.note;
+  return `<div class="tile"><div class="tile-l">${esc(label)}</div><div class="tile-v">${value}</div><div class="tile-d">${d || "&nbsp;"}</div></div>`;
+}
+function tilesHTML(list, cls = "") {
+  return `<div class="card span-12"><div class="tiles ${cls}">${list.join("")}</div></div>`;
+}
+
+/* ================= pages ================= */
+const card = (span, title, sub, id, extra = "") =>
+  `<div class="card ${span}"><div class="card-h"><h3 class="card-t">${esc(title)}</h3>${extra || (sub ? `<span class="card-s">${esc(sub)}</span>` : "")}</div><div class="card-b"><div id="${id}"></div></div></div>`;
+const rangeMonths = () => D.months.filter(m => inRange(m));
+const C = { accent: "#257de0", muted: "#b9b9bd", s2: "#f47230", s3: "#00b894", s4: "#f2a600", s5: "#6a4ce2", text: "#18181b" };
+
+const Pages = {
+  ringkasan() {
+    const cur = kpis(sumBy(smRows(), SM_SUM)), py = kpis(sumBy(smRows(true), SM_SUM));
+    const html = [
+      tilesHTML([
+        tile("Net Sales", rp(cur.net_sales), cur.net_sales, py.net_sales),
+        tile("SPD", rp(cur.spd), cur.spd, py.spd),
+        tile("STD per hari", num(cur.std_day), cur.std_day, py.std_day),
+        tile("AMB", rp(cur.amb), cur.amb, py.amb),
+        tile("Achievement", pct(cur.ach), cur.ach, py.ach, { pp: true }),
+        tile("Gross Margin", pct(cur.gm), cur.gm, py.gm, { pp: true }),
+        tile("EBITDA %", pct(cur.ebitda_pct), cur.ebitda_pct, py.ebitda_pct, { pp: true }),
+        tile("OOS rate", pct(cur.oos), cur.oos, py.oos, { pp: true, lowerBetter: true }),
+      ]),
+      card("span-8", "Net Sales vs target per bulan", "", "c-trend", legend([["Net Sales", C.accent, 1], ["Target", C.text]])),
+      card("span-4", "10 toko achievement terendah", "periode terpilih", "c-bottom"),
+      card("span-12", "Per kabupaten", "klik judul kolom untuk mengurutkan", "t-regency"),
+    ];
+    content.innerHTML = html.join("");
+    const ms = rangeMonths(), S = storeSet();
+    const byM = groupBy(D.store_monthly.filter(r => S.has(r.store_code) && inRange(r.month)), r => r.month);
+    const agg = ms.map(m => sumBy(byM.get(m) || [], ["net_sales", "target_sales"]));
+    xyChart(document.getElementById("c-trend"), {
+      labels: ms, xFmt: mLabel, tipTitle: mLong, yFmt: v => rp(v).replace("Rp ", ""), tipFmt: v => rp(v),
+      series: [
+        { name: "Net Sales", type: "bar", values: agg.map(a => a.net_sales), color: C.accent },
+        { name: "Target", type: "line", values: agg.map(a => a.target_sales), color: C.text, width: 1.5 },
+      ],
+      tipExtra: i => tipRow("Achievement", pct(div(agg[i].net_sales, agg[i].target_sales))),
+      height: 260,
+    });
+    const byStore = [...groupBy(smRows(), r => r.store_code)].map(([code, rows]) => {
+      const s = sumBy(rows, ["net_sales", "target_sales"]); return { code, ach: div(s.net_sales, s.target_sales), ...s };
+    }).filter(r => r.ach != null).sort((a, b) => a.ach - b.ach).slice(0, 10);
+    hbars(document.getElementById("c-bottom"), byStore.map(r => ({
+      label: r.code, sub: storeOf(r.code)?.regency, value: r.ach,
+      tip: `<b>${esc(r.code)} · ${esc(storeOf(r.code)?.store_name)}</b>${tipRow("Achievement", pct(r.ach))}${tipRow("Net Sales", rp(r.net_sales))}${tipRow("Target", rp(r.target_sales))}${tipRow("AM", esc(storeOf(r.code)?.am_name))}`,
+    })), { fmt: v => pct(v), ref: { value: 1, label: "target 100%" }, low: r => r.value < 0.95, max: 1.1 });
+    const regRows = [...groupBy(smRows(), r => storeOf(r.store_code).regency)].map(([reg, rows]) => {
+      const k = kpis(sumBy(rows, SM_SUM));
+      return { regency: reg, stores: new Set(rows.map(r => r.store_code)).size, ...k };
+    });
+    const maxNS = Math.max(...regRows.map(r => r.net_sales));
+    table(document.getElementById("t-regency"), [
+      { key: "regency", label: "Kabupaten" },
+      { key: "stores", label: "Toko", num: true },
+      { key: "net_sales", label: "Net Sales", num: true, html: r => cellBar(r.net_sales, maxNS, rp(r.net_sales)) },
+      { key: "spd", label: "SPD", num: true, fmt: v => rp(v) },
+      { key: "ach", label: "Achievement", num: true, html: r => achPill(r.ach) },
+      { key: "gm", label: "GM %", num: true, fmt: v => pct(v) },
+      { key: "ebitda_pct", label: "EBITDA %", num: true, fmt: v => pct(v) },
+      { key: "oos", label: "OOS rate", num: true, fmt: v => pct(v) },
+    ], regRows, { sort: ["net_sales", "desc"] });
+  },
+
+  operation() {
+    const rows = smRows(), cur = kpis(sumBy(rows, SM_SUM)), py = kpis(sumBy(smRows(true), SM_SUM));
+    const pyRows = smRows(true);
+    const st = [...groupBy(rows, r => r.store_code)].map(([code, rs]) => {
+      const s = sumBy(rs, SM_SUM), k = kpis(s);
+      const p = sumBy(pyRows.filter(r => r.store_code === code), ["net_sales", "open_days"]);
+      return { code, ...k, am: storeOf(code).am_name, regency: storeOf(code).regency, spd_yoy: p.open_days ? k.spd / div(p.net_sales, p.open_days) - 1 : null };
+    });
+    const sm = rows.filter(r => r.target_sales), hit = sm.filter(r => r.net_sales >= r.target_sales).length;
+    content.innerHTML = [
+      tilesHTML([
+        tile("Toko-bulan capai target", pct(div(hit, sm.length)), null, null, { note: `${num(hit)} dari ${num(sm.length)} toko-bulan` }),
+        tile("SPD", rp(cur.spd), cur.spd, py.spd),
+        tile("STD per hari", num(cur.std_day), cur.std_day, py.std_day),
+        tile("AMB", rp(cur.amb), cur.amb, py.amb),
+        tile("Achievement", pct(cur.ach), cur.ach, py.ach, { pp: true }),
+      ], "five"),
+      card("span-12", "Net Sales harian", "", "c-daily", `<span class="card-s" id="daily-note"></span>`),
+      card("span-12", "Per Area Manager & Area Koordinator", "", "t-am"),
+      card("span-12", "Toko — urut achievement terendah", "SPD YoY dibanding periode sama tahun lalu", "t-store"),
+    ].join("");
+    // daily (regency-level data)
+    const daily = D.daily.filter(r => inRange(r.sales_date.slice(0, 8) + "01") && (!state.regency || r.regency === state.regency));
+    const byDay = groupBy(daily, r => r.sales_date);
+    const days = [...byDay.keys()].sort();
+    const vals = days.map(d => byDay.get(d).reduce((a, r) => a + r.net_sales, 0));
+    const ev = days.map(d => byDay.get(d).map(r => r.event).find(Boolean) || "");
+    const partial = state.am_name || state.location_type || state.store_type;
+    document.getElementById("daily-note").textContent = partial ? "grafik ini hanya mengikuti filter kabupaten" : (state.regency || "semua kabupaten");
+    xyChart(document.getElementById("c-daily"), {
+      labels: days, xFmt: d => d.slice(8) === "01" ? mLabel(d.slice(0, 7) + "-01") : "",
+      xEvery: 1, tipTitle: (d, i) => new Date(d + "T00:00").toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) + (ev[i] ? " · " + ev[i] : ""),
+      yFmt: v => rp(v).replace("Rp ", ""), tipFmt: v => rp(v),
+      series: [{ name: "Net Sales", type: "line", values: vals, color: C.accent, width: 1.5 }], height: 220,
+    });
+    // AM table
+    const am = [...groupBy(rows, r => storeOf(r.store_code).am_name + "|" + storeOf(r.store_code).ak_name)].map(([k, rs]) => {
+      const [amn, ak] = k.split("|"); return { am: amn, ak, stores: new Set(rs.map(r => r.store_code)).size, ...kpis(sumBy(rs, SM_SUM)) };
+    });
+    const maxAM = Math.max(...am.map(r => r.net_sales));
+    table(document.getElementById("t-am"), [
+      { key: "am", label: "Area Manager" }, { key: "ak", label: "Area Koordinator" },
+      { key: "stores", label: "Toko", num: true },
+      { key: "net_sales", label: "Net Sales", num: true, html: r => cellBar(r.net_sales, maxAM, rp(r.net_sales)) },
+      { key: "spd", label: "SPD", num: true, fmt: v => rp(v) },
+      { key: "ach", label: "Achievement", num: true, html: r => achPill(r.ach) },
+      { key: "display", label: "Display compliance", num: true, html: r => r.display < 0.85 ? `<span class="pill bad">${pct(r.display)}</span>` : pct(r.display) },
+    ], am, { sort: ["net_sales", "desc"] });
+    table(document.getElementById("t-store"), [
+      { key: "code", label: "Toko", html: r => `${esc(r.code)} <span class="sub">${esc(storeOf(r.code).store_name)}</span>` },
+      { key: "am", label: "AM" }, { key: "regency", label: "Kabupaten" },
+      { key: "net_sales", label: "Net Sales", num: true, fmt: v => rp(v) },
+      { key: "ach", label: "Achievement", num: true, html: r => achPill(r.ach) },
+      { key: "spd_yoy", label: "SPD YoY", num: true, html: r => signed(r.spd_yoy) },
+      { key: "display", label: "Display compliance", num: true, fmt: v => pct(v) },
+    ], st, { sort: ["ach", "asc"], maxH: 380 });
+  },
+
+  merchandise() {
+    const S = storeSet();
+    const cat = D.category_monthly.filter(r => S.has(r.store_code) && inRange(r.month));
+    const catPy = D.category_monthly.filter(r => S.has(r.store_code) && inRange(r.month, shiftYear(state.from, -1), shiftYear(state.to, -1)));
+    const pyMap = new Map([...groupBy(catPy, r => r.category)].map(([c, rs]) => [c, sumBy(rs, ["net_sales"]).net_sales]));
+    const total = cat.reduce((a, r) => a + r.net_sales, 0);
+    const cats = [...groupBy(cat, r => r.category)].map(([c, rs]) => {
+      const s = sumBy(rs, ["net_sales", "gross_profit"]);
+      return { category: c, net_sales: s.net_sales, gm: div(s.gross_profit, s.net_sales), share: div(s.net_sales, total), yoy: pyMap.get(c) ? s.net_sales / pyMap.get(c) - 1 : null };
+    }).sort((a, b) => b.net_sales - a.net_sales);
+    const plan = D.planogram_monthly.filter(r => S.has(r.store_code) && inRange(r.month));
+    const am = [...groupBy(plan, r => storeOf(r.store_code).am_name)].map(([a, rs]) => {
+      const s = sumBy(rs, ["compliant_items", "audited_items"]); return { label: a, value: div(s.compliant_items, s.audited_items), ...s };
+    }).sort((a, b) => a.value - b.value);
+    const camps = D.campaigns.filter(c => c.start_date.slice(0, 8) + "01" <= state.to && c.end_date.slice(0, 8) + "01" >= state.from);
+    content.innerHTML = [
+      card("span-7", "Kategori", "Net Sales, kontribusi, gross margin", "t-cat"),
+      card("span-5 top", "Facing compliance per AM", "dari audit planogram", "c-facing"),
+      card("span-12", "Campaign", "", "t-camp", `<span class="card-s">${camps.length} campaign aktif di periode ini · tidak terpengaruh filter toko</span>`),
+    ].join("");
+    const maxC = Math.max(...cats.map(c => c.net_sales));
+    table(document.getElementById("t-cat"), [
+      { key: "category", label: "Kategori" },
+      { key: "net_sales", label: "Net Sales", num: true, html: r => cellBar(r.net_sales, maxC, rp(r.net_sales)) },
+      { key: "share", label: "Kontribusi", num: true, fmt: v => pct(v) },
+      { key: "gm", label: "GM %", num: true, fmt: v => pct(v) },
+      { key: "yoy", label: "YoY", num: true, html: r => signed(r.yoy) },
+    ], cats, { sort: ["net_sales", "desc"], maxH: 520 });
+    hbars(document.getElementById("c-facing"), am.map(r => ({
+      label: r.label, value: r.value,
+      tip: `<b>${esc(r.label)}</b>${tipRow("Facing compliance", pct(r.value))}${tipRow("Item sesuai", num(r.compliant_items))}${tipRow("Item diaudit", num(r.audited_items))}`,
+    })), { fmt: v => pct(v), ref: { value: 0.9, label: "target 90%" }, low: r => r.value < 0.9, max: 1 });
+    table(document.getElementById("t-camp"), [
+      { key: "campaign_name", label: "Campaign", html: r => `${esc(r.campaign_name)} <span class="sub">${esc(r.campaign_id)} · ${esc(r.channel)}</span>` },
+      { key: "start_date", label: "Periode", html: r => `${r.start_date.slice(8)}/${r.start_date.slice(5, 7)} – ${r.end_date.slice(8)}/${r.end_date.slice(5, 7)}/${r.end_date.slice(2, 4)}` },
+      { key: "cost", label: "Biaya", num: true, fmt: v => rp(v) },
+      { key: "uplift_pct", label: "Uplift", num: true, html: r => signed(r.uplift_pct) },
+      { key: "incremental_sales", label: "Incremental sales", num: true, fmt: v => rp(v) },
+      { key: "roi", label: "ROI", num: true, html: r => r.roi < 0 ? `<span class="pill bad">${pct(r.roi)}</span>` : `<span class="pill good">${pct(r.roi)}</span>` },
+    ], camps, { sort: ["roi", "asc"], maxH: 360 });
+  },
+
+  finance() {
+    const rows = smRows(), s = sumBy(rows, SM_SUM), cur = kpis(s), py = kpis(sumBy(smRows(true), SM_SUM));
+    content.innerHTML = [
+      tilesHTML([
+        tile("Net Sales", rp(cur.net_sales), cur.net_sales, py.net_sales),
+        tile("EBITDA", rp(cur.ebitda), cur.ebitda, py.ebitda),
+        tile("EBITDA %", pct(cur.ebitda_pct), cur.ebitda_pct, py.ebitda_pct, { pp: true }),
+        tile("Rent %", pct(cur.rent_pct), cur.rent_pct, py.rent_pct, { pp: true, lowerBetter: true }),
+        tile("Labor cost %", pct(cur.labor_pct), cur.labor_pct, py.labor_pct, { pp: true, lowerBetter: true }),
+        tile("Opex vs budget", pct(cur.opex_budget), null, null, { note: cur.opex_budget > 1 ? `<span class="down">di atas budget</span>` : `<span class="up">dalam budget</span>` }),
+      ], "six"),
+      card("span-12", "Komposisi opex per bulan", "", "c-opex", legend([["Gaji", C.accent, 1], ["Sewa", C.s2, 1], ["Utilitas", C.s3, 1], ["Promo", C.s4, 1], ["Lainnya", C.muted, 1]])),
+      card("span-12", "Profitabilitas toko", "urut EBITDA % terendah · merah = EBITDA negatif", "t-fin"),
+    ].join("");
+    const ms = rangeMonths(), byM = groupBy(rows, r => r.month);
+    const ag = ms.map(m => sumBy(byM.get(m) || [], SM_SUM));
+    xyChart(document.getElementById("c-opex"), {
+      labels: ms, xFmt: mLabel, tipTitle: mLong, yFmt: v => rp(v).replace("Rp ", ""), tipFmt: v => rp(v), height: 240,
+      series: [
+        { name: "Gaji", type: "bar", stack: 1, values: ag.map(a => a.salary), color: C.accent },
+        { name: "Sewa", type: "bar", stack: 1, values: ag.map(a => a.rent), color: C.s2 },
+        { name: "Utilitas", type: "bar", stack: 1, values: ag.map(a => a.utilities), color: C.s3 },
+        { name: "Promo", type: "bar", stack: 1, values: ag.map(a => a.promo_cost), color: C.s4 },
+        { name: "Lainnya", type: "bar", stack: 1, values: ag.map(a => a.maintenance + a.it_cost + a.other_cost), color: C.muted },
+      ],
+      tipExtra: i => `<div style="border-top:1px solid #3a3a3f;margin-top:4px;padding-top:4px">${tipRow("Total opex", rp(ag[i].total_opex))}${tipRow("Opex / sales", pct(div(ag[i].total_opex, ag[i].net_sales)))}</div>`,
+    });
+    const st = [...groupBy(rows, r => r.store_code)].map(([code, rs]) => ({ code, ...kpis(sumBy(rs, SM_SUM)), regency: storeOf(code).regency, loc: storeOf(code).location_type }));
+    table(document.getElementById("t-fin"), [
+      { key: "code", label: "Toko", html: r => `${esc(r.code)} <span class="sub">${esc(storeOf(r.code).store_name)}</span>` },
+      { key: "regency", label: "Kabupaten" }, { key: "loc", label: "Lokasi" },
+      { key: "net_sales", label: "Net Sales", num: true, fmt: v => rp(v) },
+      { key: "ebitda", label: "EBITDA", num: true, html: r => r.ebitda < 0 ? `<span class="down">${rp(r.ebitda)}</span>` : rp(r.ebitda) },
+      { key: "ebitda_pct", label: "EBITDA %", num: true, html: r => r.ebitda_pct < 0 ? `<span class="pill bad">${pct(r.ebitda_pct)}</span>` : pct(r.ebitda_pct) },
+      { key: "rent_pct", label: "Rent %", num: true, fmt: v => pct(v) },
+      { key: "labor_pct", label: "Labor %", num: true, fmt: v => pct(v) },
+    ], st, { sort: ["ebitda_pct", "asc"], maxH: 420 });
+  },
+
+  supply() {
+    const rows = smRows(), cur = kpis(sumBy(rows, SM_SUM)), py = kpis(sumBy(smRows(true), SM_SUM)), S = storeSet();
+    const sup = D.supplier_monthly.filter(r => inRange(r.month));
+    const supS = sumBy(sup, ["qty_ordered", "qty_received", "on_time_lines", "po_lines"]);
+    const dc = D.dc_monthly.filter(r => S.has(r.store_code) && inRange(r.month));
+    const dcS = sumBy(dc, ["qty_requested", "qty_shipped", "on_time_shipments", "shipments", "delivery_cost"]);
+    content.innerHTML = [
+      tilesHTML([
+        tile("OOS rate", pct(cur.oos), cur.oos, py.oos, { pp: true, lowerBetter: true }),
+        tile("SOH 0 rate", pct(cur.soh0), cur.soh0, py.soh0, { pp: true, lowerBetter: true }),
+        tile("Fill rate supplier", pct(div(supS.qty_received, supS.qty_ordered)), null, null, { note: "semua supplier" }),
+        tile("Fill rate DC", pct(div(dcS.qty_shipped, dcS.qty_requested)), null, null, { note: "DC → toko" }),
+        tile("On-time DC", pct(div(dcS.on_time_shipments, dcS.shipments)), null, null, { note: `${num(dcS.shipments)} pengiriman` }),
+      ], "five"),
+      card("span-6", "OOS & SOH 0 per bulan", "", "c-oos", legend([["OOS rate", C.accent], ["SOH 0 rate", C.s2]])),
+      card("span-6", "Fill rate supplier per bulan", "", "c-sup", legend([["SUP001", C.s2], ["Supplier lain", C.muted]])),
+      card("span-7", "Top SKU OOS berdasarkan jumlah toko", "maks. toko OOS dalam satu bulan · tidak terpengaruh filter toko", "t-sku"),
+      card("span-5", "DC per kabupaten", "", "t-dc"),
+    ].join("");
+    const ms = rangeMonths(), byM = groupBy(rows, r => r.month);
+    const ag = ms.map(m => sumBy(byM.get(m) || [], ["sku_weeks", "oos_sku_weeks", "soh_zero_sku_weeks"]));
+    xyChart(document.getElementById("c-oos"), {
+      labels: ms, xFmt: mLabel, tipTitle: mLong, yFmt: pctAxis, tipFmt: v => pct(v, 2), height: 220,
+      series: [
+        { name: "OOS rate", type: "line", values: ag.map(a => div(a.oos_sku_weeks, a.sku_weeks)), color: C.accent },
+        { name: "SOH 0 rate", type: "line", values: ag.map(a => div(a.soh_zero_sku_weeks, a.sku_weeks)), color: C.s2 },
+      ],
+    });
+    const supByM = groupBy(sup, r => r.month);
+    const fr = (rs, f) => { const s = sumBy(rs.filter(f), ["qty_ordered", "qty_received"]); return div(s.qty_received, s.qty_ordered); };
+    const s1 = ms.map(m => fr(supByM.get(m) || [], r => r.supplier_id === "SUP001"));
+    const s0 = ms.map(m => fr(supByM.get(m) || [], r => r.supplier_id !== "SUP001"));
+    const lo = Math.min(...s1.concat(s0).filter(v => v != null));
+    xyChart(document.getElementById("c-sup"), {
+      labels: ms, xFmt: mLabel, tipTitle: mLong, yFmt: pctAxis, tipFmt: v => pct(v, 1), height: 220,
+      yMin: Math.floor(lo * 20) / 20, yMax: 1, refLine: { value: 0.9, label: "batas 90%" },
+      series: [
+        { name: "Supplier lain", type: "line", values: s0, color: C.muted },
+        { name: "SUP001", type: "line", values: s1, color: C.s2 },
+      ],
+    });
+    const sku = [...groupBy(D.oos_sku_monthly.filter(r => inRange(r.month)), r => r.sku)].map(([k, rs]) => ({
+      sku: k, product_name: rs[0].product_name, category: rs[0].category, supplier_id: rs[0].supplier_id,
+      stores_oos: Math.max(...rs.map(r => r.stores_oos)), stores_soh_zero: Math.max(...rs.map(r => r.stores_soh_zero)),
+      lost: rs.reduce((a, r) => a + (r.est_lost_sales || 0), 0),
+    }));
+    table(document.getElementById("t-sku"), [
+      { key: "sku", label: "SKU", html: r => `${esc(r.sku)} <span class="sub">${esc(r.product_name)}</span>` },
+      { key: "supplier_id", label: "Supplier" },
+      { key: "stores_oos", label: "Toko OOS", num: true, html: r => r.stores_oos >= 20 ? `<span class="pill bad">${r.stores_oos}</span>` : r.stores_oos },
+      { key: "stores_soh_zero", label: "Toko SOH 0", num: true },
+      { key: "lost", label: "Est. lost sales", num: true, fmt: v => rp(v) },
+    ], sku, { sort: ["stores_oos", "desc"], limit: 20, maxH: 440 });
+    const dcr = [...groupBy(dc, r => storeOf(r.store_code).regency)].map(([reg, rs]) => {
+      const s = sumBy(rs, ["qty_requested", "qty_shipped", "on_time_shipments", "shipments", "delivery_cost"]);
+      return { regency: reg, fill: div(s.qty_shipped, s.qty_requested), ontime: div(s.on_time_shipments, s.shipments), cpu: div(s.delivery_cost, s.qty_shipped) };
+    });
+    table(document.getElementById("t-dc"), [
+      { key: "regency", label: "Kabupaten" },
+      { key: "fill", label: "Fill rate", num: true, fmt: v => pct(v) },
+      { key: "ontime", label: "On-time", num: true, html: r => r.ontime < 0.9 ? `<span class="pill warn">${pct(r.ontime)}</span>` : pct(r.ontime) },
+      { key: "cpu", label: "Biaya / unit", num: true, fmt: v => "Rp " + num(v) },
+    ], dcr, { sort: ["cpu", "desc"] });
+  },
+};
+
+/* ================= shell ================= */
+const content = document.getElementById("content");
+function renderFilters() {
+  const opt = (v, l, sel) => `<option value="${esc(v)}" ${sel ? "selected" : ""}>${esc(l)}</option>`;
+  const ms = D.months;
+  const f = document.getElementById("filters");
+  f.innerHTML =
+    `<label class="field"><select id="f-from" aria-label="Dari bulan">${ms.map(m => opt(m, mLong(m), m === state.from)).join("")}</select></label>
+     <span class="note">–</span>
+     <label class="field"><select id="f-to" aria-label="Sampai bulan">${ms.map(m => opt(m, mLong(m), m === state.to)).join("")}</select></label>
+     <span class="sep"></span>` +
+    DIMS.map(d => {
+      const vals = [...new Set(D.stores.filter(s => DIMS.every(o => o.key === d.key || !state[o.key] || s[o.key] === state[o.key])).map(s => s[d.key]))].sort();
+      return `<label class="field"><select data-k="${d.key}" aria-label="${esc(d.label)}">${opt("", d.label, !state[d.key])}${vals.map(v => opt(v, v, v === state[d.key])).join("")}</select></label>`;
+    }).join("") + `<button class="reset" id="f-reset">Reset</button>`;
+  f.querySelector("#f-from").onchange = e => { state.from = e.target.value; if (state.from > state.to) state.to = state.from; render(); };
+  f.querySelector("#f-to").onchange = e => { state.to = e.target.value; if (state.to < state.from) state.from = state.to; render(); };
+  f.querySelectorAll("select[data-k]").forEach(s => s.onchange = e => { state[e.target.dataset.k] = e.target.value; render(); });
+  f.querySelector("#f-reset").onclick = () => { Object.assign(state, defaults()); render(); };
+}
+function renderNav() {
+  document.getElementById("nav").innerHTML = PAGES.map((p, i) =>
+    `<button data-p="${p.id}" ${p.id === state.page ? 'aria-current="page"' : ""}><span>${p.name}</span><span class="kbd">${i + 1}</span></button>`).join("");
+  document.querySelectorAll("#nav button").forEach(b => b.onclick = () => { state.page = b.dataset.p; render(); });
+}
+function render() {
+  renderNav(); renderFilters();
+  const p = PAGES.find(p => p.id === state.page);
+  document.getElementById("title").innerHTML = `${esc(p.name)} <span class="crumb">· ${mLong(state.from)} – ${mLong(state.to)}</span>`;
+  hideTip();
+  Pages[state.page]();
+  const h = new URLSearchParams(); Object.entries(state).forEach(([k, v]) => v && h.set(k, v));
+  history.replaceState(null, "", "#" + h.toString());
+}
+function defaults() {
+  const last = D.months[D.months.length - 1];
+  return { page: state.page, from: D.months[Math.max(0, D.months.length - 12)], to: last, regency: "", am_name: "", location_type: "", store_type: "" };
+}
+function init(raw) {
+  D = {};
+  for (const [k, v] of Object.entries(raw)) D[k] = v && v.cols ? toObjs(v) : v;
+  D.storeMap = new Map(D.stores.map(s => [s.store_code, s]));
+  D.months = [...new Set(D.store_monthly.map(r => r.month))].sort();
+  Object.assign(state, defaults());
+  const h = new URLSearchParams(location.hash.slice(1));
+  for (const k of Object.keys(state)) if (h.get(k)) state[k] = h.get(k);
+  if (!PAGES.some(p => p.id === state.page)) state.page = "ringkasan";
+  document.getElementById("foot").textContent = "Data: " + raw.generated_at.replace("T", " ").slice(0, 16);
+  render();
+  let t; addEventListener("resize", () => { clearTimeout(t); t = setTimeout(render, 150); });
+  addEventListener("keydown", e => {
+    if (e.target.tagName === "SELECT" || e.metaKey || e.ctrlKey) return;
+    const i = +e.key - 1; if (PAGES[i]) { state.page = PAGES[i].id; render(); }
+  });
+}
+if (EMBEDDED) init(EMBEDDED);
+else fetch("data.json").then(r => r.json()).then(init).catch(() => {
+  content.innerHTML = `<div class="card span-12"><div class="card-b">Data belum ada. Jalankan <code>uv run export-dashboard</code>, lalu buka <code>dashboard/dist/index.html</code>.</div></div>`;
+});
+</script>
+</body>
+</html>
