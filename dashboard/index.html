@@ -187,7 +187,7 @@ td .sub { color: var(--text-3); }
   <aside class="side">
     <div class="brand">
       <div class="brand-mark">RH</div>
-      <div><div class="brand-name">Retail HQ</div><div class="brand-sub">50 toko · Bali</div></div>
+      <div><div class="brand-name">Retail HQ</div><div class="brand-sub" id="brand-sub"></div></div>
     </div>
     <div>
       <div class="nav-label">Dashboard</div>
@@ -312,6 +312,9 @@ function xyChart(el, o) {
   const H = o.height || 220, pad = { l: 56, r: 12, t: 10, b: 26 };
   const W = Math.max(320, Math.floor(el.getBoundingClientRect().width) || 600);
   const n = o.labels.length;
+  if (!n || o.series.every(se => se.values.every(v => v == null))) {
+    el.innerHTML = `<div class="empty">Belum ada data untuk periode ini</div>`; return;
+  }
   const bars = o.series.filter(s => s.type === "bar"), lines = o.series.filter(s => s.type !== "bar");
   const stacked = bars.length > 1 && bars.every(s => s.stack);
   let vmax = 0, vmin = o.yMin ?? 0;
@@ -671,7 +674,7 @@ const Pages = {
         tile("On-time DC", pct(div(dcS.on_time_shipments, dcS.shipments)), null, null, { note: `${num(dcS.shipments)} pengiriman` }),
       ], "five"),
       card("span-6", "OOS & SOH 0 per bulan", "", "c-oos", legend([["OOS rate", C.accent], ["SOH 0 rate", C.s2]])),
-      card("span-6", "Fill rate supplier per bulan", "", "c-sup", legend([["SUP001", C.s2], ["Supplier lain", C.muted]])),
+      card("span-6", "Fill rate supplier per bulan", "", "c-sup", `<span id="sup-legend"></span>`),
       card("span-7", "Top SKU OOS berdasarkan jumlah toko", "maks. toko OOS dalam satu bulan · tidak terpengaruh filter toko", "t-sku"),
       card("span-5", "DC per kabupaten", "", "t-dc"),
     ].join("");
@@ -686,15 +689,21 @@ const Pages = {
     });
     const supByM = groupBy(sup, r => r.month);
     const fr = (rs, f) => { const s = sumBy(rs.filter(f), ["qty_ordered", "qty_received"]); return div(s.qty_received, s.qty_ordered); };
-    const s1 = ms.map(m => fr(supByM.get(m) || [], r => r.supplier_id === "SUP001"));
-    const s0 = ms.map(m => fr(supByM.get(m) || [], r => r.supplier_id !== "SUP001"));
-    const lo = Math.min(...s1.concat(s0).filter(v => v != null));
+    // sorot supplier dengan fill rate terendah di periode terpilih
+    const worst = [...groupBy(sup, r => r.supplier_id)].map(([id, rs]) => ({ id, name: rs[0].supplier_name, f: fr(rs, () => true) }))
+      .filter(x => x.f != null).sort((a, b) => a.f - b.f)[0];
+    const wid = worst ? worst.id : null;
+    document.getElementById("sup-legend").innerHTML = wid ? legend([[`${wid} (terendah)`, C.s2], ["Supplier lain", C.muted]]) : "";
+    const s1 = ms.map(m => fr(supByM.get(m) || [], r => r.supplier_id === wid));
+    const s0 = ms.map(m => fr(supByM.get(m) || [], r => r.supplier_id !== wid));
+    const vals = s1.concat(s0).filter(v => v != null);
+    const lo = vals.length ? Math.min(...vals) : 0.9;
     xyChart(document.getElementById("c-sup"), {
       labels: ms, xFmt: mLabel, tipTitle: mLong, yFmt: pctAxis, tipFmt: v => pct(v, 1), height: 220,
       yMin: Math.floor(lo * 20) / 20, yMax: 1, refLine: { value: 0.9, label: "batas 90%" },
       series: [
         { name: "Supplier lain", type: "line", values: s0, color: C.muted },
-        { name: "SUP001", type: "line", values: s1, color: C.s2 },
+        { name: wid ? `${wid} · ${worst.name}` : "-", type: "line", values: s1, color: C.s2 },
       ],
     });
     const sku = [...groupBy(D.oos_sku_monthly.filter(r => inRange(r.month)), r => r.sku)].map(([k, rs]) => ({
@@ -769,7 +778,9 @@ function init(raw) {
   const h = new URLSearchParams(location.hash.slice(1));
   for (const k of Object.keys(state)) if (h.get(k)) state[k] = h.get(k);
   if (!PAGES.some(p => p.id === state.page)) state.page = "ringkasan";
-  document.getElementById("foot").textContent = "Data: " + raw.generated_at.replace("T", " ").slice(0, 16);
+  const real = raw.mode === "asli";
+  document.getElementById("brand-sub").textContent = `${D.stores.length} toko · ${real ? "data asli" : "data simulasi"}`;
+  document.getElementById("foot").textContent = "Diperbarui " + raw.generated_at.replace("T", " ").slice(0, 16);
   render();
   let t; addEventListener("resize", () => { clearTimeout(t); t = setTimeout(render, 150); });
   addEventListener("keydown", e => {

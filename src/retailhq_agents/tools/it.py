@@ -33,14 +33,18 @@ def aset_it_toko(store_code: str = "", asset_type: str = "POS", limit: int = 10)
     sql = f"""
         select store_code, asset_type, count(*) as unit,
                min(purchase_date) as beli_tertua,
-               round(avg(date_diff(date '2026-10-31', purchase_date, day)) / 365.25, 1) as rata2_umur_tahun
+               round(avg(date_diff(@rd, purchase_date, day)) / 365.25, 1) as rata2_umur_tahun
         from {bq.staging_table('stg_it_asset')}
         where (@store = '' or store_code = @store) and (@atype = '' or lower(asset_type) = lower(@atype))
         group by store_code, asset_type
         order by beli_tertua
         limit @lim"""
-    rows = bq.query(sql, store=store_code.strip().upper(), atype=asset_type.strip(), lim=max(1, min(int(limit), 50)))
-    return {"per_tanggal": "2026-10-31", "aset": rows}
+    import datetime as dt
+
+    rd = bq.report_date()
+    rows = bq.query(sql, store=store_code.strip().upper(), atype=asset_type.strip(),
+                    lim=max(1, min(int(limit), 50)), rd=dt.date.fromisoformat(rd))
+    return {"per_tanggal": rd, "aset": rows}
 
 
 TOOLS = [ranking_toko_it, aset_it_toko]

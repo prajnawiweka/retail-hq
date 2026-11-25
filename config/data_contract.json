@@ -1,0 +1,1180 @@
+{
+ "_info": "Kontrak data Retail HQ: tabel, kolom, tipe BigQuery, kunci. Dibuat dari data dummy; data asli harus mengikuti format ini.",
+ "tables": {
+  "dim_store": {
+   "description": "Master toko",
+   "required": true,
+   "primary_key": [
+    "store_code"
+   ],
+   "columns": [
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "store_name",
+     "type": "STRING"
+    },
+    {
+     "name": "regency",
+     "type": "STRING"
+    },
+    {
+     "name": "district",
+     "type": "STRING"
+    },
+    {
+     "name": "location_type",
+     "type": "STRING"
+    },
+    {
+     "name": "am_name",
+     "type": "STRING"
+    },
+    {
+     "name": "ak_name",
+     "type": "STRING"
+    },
+    {
+     "name": "store_type",
+     "type": "STRING"
+    },
+    {
+     "name": "size_m2",
+     "type": "INT64"
+    },
+    {
+     "name": "open_date",
+     "type": "DATE"
+    },
+    {
+     "name": "status",
+     "type": "STRING"
+    }
+   ]
+  },
+  "dim_product": {
+   "description": "Master produk/SKU",
+   "required": true,
+   "primary_key": [
+    "sku"
+   ],
+   "columns": [
+    {
+     "name": "sku",
+     "type": "STRING"
+    },
+    {
+     "name": "product_name",
+     "type": "STRING"
+    },
+    {
+     "name": "category",
+     "type": "STRING"
+    },
+    {
+     "name": "subcategory",
+     "type": "STRING"
+    },
+    {
+     "name": "brand",
+     "type": "STRING"
+    },
+    {
+     "name": "supplier_id",
+     "type": "STRING"
+    },
+    {
+     "name": "cost_price",
+     "type": "INT64"
+    },
+    {
+     "name": "sell_price",
+     "type": "FLOAT64"
+    }
+   ]
+  },
+  "dim_supplier": {
+   "description": "Master supplier",
+   "required": false,
+   "primary_key": [
+    "supplier_id"
+   ],
+   "columns": [
+    {
+     "name": "supplier_id",
+     "type": "STRING"
+    },
+    {
+     "name": "supplier_name",
+     "type": "STRING"
+    },
+    {
+     "name": "lead_time_days",
+     "type": "INT64"
+    },
+    {
+     "name": "payment_terms",
+     "type": "STRING"
+    }
+   ]
+  },
+  "fact_sales_daily": {
+   "description": "Penjualan harian per toko",
+   "required": true,
+   "primary_key": [
+    "sales_date",
+    "store_code"
+   ],
+   "columns": [
+    {
+     "name": "sales_date",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "gross_sales",
+     "type": "INT64"
+    },
+    {
+     "name": "net_sales",
+     "type": "INT64"
+    },
+    {
+     "name": "cogs",
+     "type": "INT64"
+    },
+    {
+     "name": "std",
+     "type": "INT64"
+    },
+    {
+     "name": "qty_items",
+     "type": "INT64"
+    },
+    {
+     "name": "sales_promo",
+     "type": "INT64"
+    },
+    {
+     "name": "std_promo",
+     "type": "INT64"
+    },
+    {
+     "name": "target_spd",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_sales_category_daily": {
+   "description": "Penjualan harian per toko per kategori",
+   "required": true,
+   "primary_key": [
+    "sales_date",
+    "store_code",
+    "category"
+   ],
+   "columns": [
+    {
+     "name": "sales_date",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "category",
+     "type": "STRING"
+    },
+    {
+     "name": "net_sales",
+     "type": "INT64"
+    },
+    {
+     "name": "cogs",
+     "type": "INT64"
+    },
+    {
+     "name": "qty",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_sales_sku_weekly": {
+   "description": "Penjualan mingguan per SKU",
+   "required": false,
+   "primary_key": [
+    "week_start",
+    "store_code",
+    "sku"
+   ],
+   "columns": [
+    {
+     "name": "week_start",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "sku",
+     "type": "STRING"
+    },
+    {
+     "name": "qty",
+     "type": "INT64"
+    },
+    {
+     "name": "net_sales",
+     "type": "INT64"
+    },
+    {
+     "name": "cogs",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_stock_weekly": {
+   "description": "Stok mingguan per SKU (OOS, SOH)",
+   "required": false,
+   "primary_key": [
+    "week_start",
+    "store_code",
+    "sku"
+   ],
+   "columns": [
+    {
+     "name": "week_start",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "sku",
+     "type": "STRING"
+    },
+    {
+     "name": "soh",
+     "type": "INT64"
+    },
+    {
+     "name": "min_stock",
+     "type": "INT64"
+    },
+    {
+     "name": "oos_flag",
+     "type": "INT64"
+    },
+    {
+     "name": "days_oos",
+     "type": "INT64"
+    }
+   ]
+  },
+  "dim_fixture": {
+   "description": "Rak/fixture toko",
+   "required": false,
+   "primary_key": [
+    "fixture_id"
+   ],
+   "columns": [
+    {
+     "name": "fixture_id",
+     "type": "STRING"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "fixture_type",
+     "type": "STRING"
+    },
+    {
+     "name": "zone",
+     "type": "STRING"
+    },
+    {
+     "name": "shelf_count",
+     "type": "INT64"
+    },
+    {
+     "name": "length_cm",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_planogram": {
+   "description": "Rencana planogram",
+   "required": false,
+   "primary_key": [
+    "store_code",
+    "sku",
+    "effective_from"
+   ],
+   "columns": [
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "fixture_id",
+     "type": "STRING"
+    },
+    {
+     "name": "shelf_level",
+     "type": "STRING"
+    },
+    {
+     "name": "sku",
+     "type": "STRING"
+    },
+    {
+     "name": "facings",
+     "type": "INT64"
+    },
+    {
+     "name": "position",
+     "type": "INT64"
+    },
+    {
+     "name": "effective_from",
+     "type": "DATE"
+    },
+    {
+     "name": "effective_to",
+     "type": "DATE"
+    }
+   ]
+  },
+  "fact_display_audit": {
+   "description": "Audit display",
+   "required": false,
+   "primary_key": [],
+   "columns": [
+    {
+     "name": "audit_date",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "fixture_id",
+     "type": "STRING"
+    },
+    {
+     "name": "sku",
+     "type": "STRING"
+    },
+    {
+     "name": "planned_facings",
+     "type": "INT64"
+    },
+    {
+     "name": "actual_facings",
+     "type": "INT64"
+    },
+    {
+     "name": "price_tag_ok",
+     "type": "BOOL"
+    },
+    {
+     "name": "shelf_talker_ok",
+     "type": "BOOL"
+    }
+   ]
+  },
+  "fact_secondary_display": {
+   "description": "Display tambahan",
+   "required": false,
+   "primary_key": [],
+   "columns": [
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "sku",
+     "type": "STRING"
+    },
+    {
+     "name": "display_type",
+     "type": "STRING"
+    },
+    {
+     "name": "start_date",
+     "type": "DATE"
+    },
+    {
+     "name": "end_date",
+     "type": "DATE"
+    }
+   ]
+  },
+  "fact_purchase_order": {
+   "description": "PO ke supplier",
+   "required": false,
+   "primary_key": [
+    "po_id",
+    "sku"
+   ],
+   "columns": [
+    {
+     "name": "po_id",
+     "type": "STRING"
+    },
+    {
+     "name": "po_date",
+     "type": "DATE"
+    },
+    {
+     "name": "supplier_id",
+     "type": "STRING"
+    },
+    {
+     "name": "sku",
+     "type": "STRING"
+    },
+    {
+     "name": "qty_ordered",
+     "type": "INT64"
+    },
+    {
+     "name": "qty_received",
+     "type": "INT64"
+    },
+    {
+     "name": "expected_date",
+     "type": "DATE"
+    },
+    {
+     "name": "received_date",
+     "type": "DATE"
+    }
+   ]
+  },
+  "fact_dc_shipment": {
+   "description": "Pengiriman DC ke toko",
+   "required": false,
+   "primary_key": [
+    "shipment_id"
+   ],
+   "columns": [
+    {
+     "name": "shipment_id",
+     "type": "STRING"
+    },
+    {
+     "name": "ship_date",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "qty_requested",
+     "type": "INT64"
+    },
+    {
+     "name": "qty_shipped",
+     "type": "INT64"
+    },
+    {
+     "name": "planned_date",
+     "type": "DATE"
+    },
+    {
+     "name": "delivered_date",
+     "type": "DATE"
+    },
+    {
+     "name": "delivery_cost",
+     "type": "INT64"
+    }
+   ]
+  },
+  "dim_employee": {
+   "description": "Karyawan",
+   "required": false,
+   "primary_key": [
+    "employee_id"
+   ],
+   "columns": [
+    {
+     "name": "employee_id",
+     "type": "STRING"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "position",
+     "type": "STRING"
+    },
+    {
+     "name": "hire_date",
+     "type": "DATE"
+    },
+    {
+     "name": "exit_date",
+     "type": "DATE"
+    },
+    {
+     "name": "monthly_salary",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_shift": {
+   "description": "Shift kerja",
+   "required": false,
+   "primary_key": [
+    "work_date",
+    "employee_id"
+   ],
+   "columns": [
+    {
+     "name": "work_date",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "employee_id",
+     "type": "STRING"
+    },
+    {
+     "name": "hours_worked",
+     "type": "FLOAT64"
+    },
+    {
+     "name": "overtime_hours",
+     "type": "INT64"
+    }
+   ]
+  },
+  "dim_contract": {
+   "description": "Kontrak sewa/izin/vendor",
+   "required": false,
+   "primary_key": [
+    "contract_id"
+   ],
+   "columns": [
+    {
+     "name": "contract_id",
+     "type": "STRING"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "vendor_name",
+     "type": "STRING"
+    },
+    {
+     "name": "contract_type",
+     "type": "STRING"
+    },
+    {
+     "name": "start_date",
+     "type": "DATE"
+    },
+    {
+     "name": "end_date",
+     "type": "DATE"
+    },
+    {
+     "name": "annual_value",
+     "type": "INT64"
+    },
+    {
+     "name": "escalation_pct",
+     "type": "FLOAT64"
+    },
+    {
+     "name": "status",
+     "type": "STRING"
+    }
+   ]
+  },
+  "fact_capex_project": {
+   "description": "Proyek capex",
+   "required": false,
+   "primary_key": [
+    "project_id"
+   ],
+   "columns": [
+    {
+     "name": "project_id",
+     "type": "STRING"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "project_type",
+     "type": "STRING"
+    },
+    {
+     "name": "capex_amount",
+     "type": "INT64"
+    },
+    {
+     "name": "start_date",
+     "type": "DATE"
+    },
+    {
+     "name": "open_date",
+     "type": "DATE"
+    },
+    {
+     "name": "status",
+     "type": "STRING"
+    }
+   ]
+  },
+  "dim_it_asset": {
+   "description": "Aset IT",
+   "required": false,
+   "primary_key": [
+    "asset_id"
+   ],
+   "columns": [
+    {
+     "name": "asset_id",
+     "type": "STRING"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "asset_type",
+     "type": "STRING"
+    },
+    {
+     "name": "purchase_date",
+     "type": "DATE"
+    },
+    {
+     "name": "status",
+     "type": "STRING"
+    }
+   ]
+  },
+  "fact_it_ticket": {
+   "description": "Tiket IT",
+   "required": false,
+   "primary_key": [
+    "ticket_id"
+   ],
+   "columns": [
+    {
+     "name": "ticket_id",
+     "type": "STRING"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "category",
+     "type": "STRING"
+    },
+    {
+     "name": "priority",
+     "type": "STRING"
+    },
+    {
+     "name": "opened_at",
+     "type": "DATETIME"
+    },
+    {
+     "name": "resolved_at",
+     "type": "DATETIME"
+    }
+   ]
+  },
+  "fact_pos_downtime": {
+   "description": "Downtime POS",
+   "required": false,
+   "primary_key": [
+    "downtime_date",
+    "store_code"
+   ],
+   "columns": [
+    {
+     "name": "downtime_date",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "downtime_minutes",
+     "type": "INT64"
+    }
+   ]
+  },
+  "dim_member": {
+   "description": "Member",
+   "required": false,
+   "primary_key": [
+    "member_id"
+   ],
+   "columns": [
+    {
+     "name": "member_id",
+     "type": "STRING"
+    },
+    {
+     "name": "home_store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "age_group",
+     "type": "STRING"
+    },
+    {
+     "name": "gender",
+     "type": "STRING"
+    },
+    {
+     "name": "member_type",
+     "type": "STRING"
+    },
+    {
+     "name": "join_date",
+     "type": "DATE"
+    }
+   ]
+  },
+  "fact_member_monthly": {
+   "description": "Transaksi member bulanan",
+   "required": false,
+   "primary_key": [
+    "month",
+    "member_id",
+    "store_code"
+   ],
+   "columns": [
+    {
+     "name": "month",
+     "type": "DATE"
+    },
+    {
+     "name": "member_id",
+     "type": "STRING"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "visits",
+     "type": "INT64"
+    },
+    {
+     "name": "net_sales",
+     "type": "INT64"
+    },
+    {
+     "name": "top_category",
+     "type": "STRING"
+    }
+   ]
+  },
+  "fact_campaign": {
+   "description": "Campaign promo",
+   "required": false,
+   "primary_key": [
+    "campaign_id"
+   ],
+   "columns": [
+    {
+     "name": "campaign_id",
+     "type": "STRING"
+    },
+    {
+     "name": "campaign_name",
+     "type": "STRING"
+    },
+    {
+     "name": "channel",
+     "type": "STRING"
+    },
+    {
+     "name": "start_date",
+     "type": "DATE"
+    },
+    {
+     "name": "end_date",
+     "type": "DATE"
+    },
+    {
+     "name": "cost",
+     "type": "INT64"
+    },
+    {
+     "name": "target_category",
+     "type": "STRING"
+    },
+    {
+     "name": "target_store_code",
+     "type": "STRING"
+    }
+   ]
+  },
+  "fact_stock_opname": {
+   "description": "Stock opname",
+   "required": false,
+   "primary_key": [
+    "opname_date",
+    "store_code",
+    "sku"
+   ],
+   "columns": [
+    {
+     "name": "opname_date",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "sku",
+     "type": "STRING"
+    },
+    {
+     "name": "system_qty",
+     "type": "INT64"
+    },
+    {
+     "name": "physical_qty",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_writeoff": {
+   "description": "Write-off barang",
+   "required": false,
+   "primary_key": [],
+   "columns": [
+    {
+     "name": "writeoff_date",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "sku",
+     "type": "STRING"
+    },
+    {
+     "name": "qty",
+     "type": "INT64"
+    },
+    {
+     "name": "reason",
+     "type": "STRING"
+    },
+    {
+     "name": "value",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_pos_void": {
+   "description": "Void/refund kasir",
+   "required": false,
+   "primary_key": [
+    "void_date",
+    "cashier_id"
+   ],
+   "columns": [
+    {
+     "name": "void_date",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "cashier_id",
+     "type": "STRING"
+    },
+    {
+     "name": "void_count",
+     "type": "INT64"
+    },
+    {
+     "name": "void_value",
+     "type": "INT64"
+    },
+    {
+     "name": "refund_count",
+     "type": "INT64"
+    },
+    {
+     "name": "refund_value",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_cash_variance": {
+   "description": "Selisih kas kasir",
+   "required": false,
+   "primary_key": [
+    "variance_date",
+    "cashier_id"
+   ],
+   "columns": [
+    {
+     "name": "variance_date",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "cashier_id",
+     "type": "STRING"
+    },
+    {
+     "name": "expected_cash",
+     "type": "INT64"
+    },
+    {
+     "name": "actual_cash",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_energy_monthly": {
+   "description": "Energi bulanan",
+   "required": false,
+   "primary_key": [
+    "month",
+    "store_code"
+   ],
+   "columns": [
+    {
+     "name": "month",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "kwh_total",
+     "type": "INT64"
+    },
+    {
+     "name": "kwh_chiller",
+     "type": "INT64"
+    },
+    {
+     "name": "kwh_ac",
+     "type": "INT64"
+    },
+    {
+     "name": "energy_cost",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_waste_monthly": {
+   "description": "Sampah bulanan",
+   "required": false,
+   "primary_key": [
+    "month",
+    "store_code"
+   ],
+   "columns": [
+    {
+     "name": "month",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "general_waste_kg",
+     "type": "FLOAT64"
+    },
+    {
+     "name": "food_waste_kg",
+     "type": "FLOAT64"
+    },
+    {
+     "name": "recycled_kg",
+     "type": "FLOAT64"
+    }
+   ]
+  },
+  "fact_plastic_monthly": {
+   "description": "Kantong plastik bulanan",
+   "required": false,
+   "primary_key": [
+    "month",
+    "store_code"
+   ],
+   "columns": [
+    {
+     "name": "month",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "plastic_bags_used",
+     "type": "INT64"
+    },
+    {
+     "name": "plastic_bags_sold",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_opex_monthly": {
+   "description": "Opex bulanan per toko",
+   "required": false,
+   "primary_key": [
+    "month",
+    "store_code"
+   ],
+   "columns": [
+    {
+     "name": "month",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "rent",
+     "type": "INT64"
+    },
+    {
+     "name": "salary",
+     "type": "INT64"
+    },
+    {
+     "name": "utilities",
+     "type": "INT64"
+    },
+    {
+     "name": "maintenance",
+     "type": "INT64"
+    },
+    {
+     "name": "promo_cost",
+     "type": "INT64"
+    },
+    {
+     "name": "it_cost",
+     "type": "INT64"
+    },
+    {
+     "name": "other_cost",
+     "type": "INT64"
+    }
+   ]
+  },
+  "fact_budget_monthly": {
+   "description": "Budget bulanan per toko",
+   "required": false,
+   "primary_key": [
+    "month",
+    "store_code"
+   ],
+   "columns": [
+    {
+     "name": "month",
+     "type": "DATE"
+    },
+    {
+     "name": "store_code",
+     "type": "STRING"
+    },
+    {
+     "name": "budget_sales",
+     "type": "INT64"
+    },
+    {
+     "name": "budget_opex",
+     "type": "INT64"
+    }
+   ]
+  }
+ },
+ "foreign_keys": [
+  {
+   "column": "store_code",
+   "ref_table": "dim_store",
+   "ref_column": "store_code"
+  },
+  {
+   "column": "home_store_code",
+   "ref_table": "dim_store",
+   "ref_column": "store_code"
+  },
+  {
+   "column": "target_store_code",
+   "ref_table": "dim_store",
+   "ref_column": "store_code"
+  },
+  {
+   "column": "sku",
+   "ref_table": "dim_product",
+   "ref_column": "sku"
+  },
+  {
+   "column": "supplier_id",
+   "ref_table": "dim_supplier",
+   "ref_column": "supplier_id"
+  },
+  {
+   "column": "employee_id",
+   "ref_table": "dim_employee",
+   "ref_column": "employee_id"
+  },
+  {
+   "column": "fixture_id",
+   "ref_table": "dim_fixture",
+   "ref_column": "fixture_id"
+  },
+  {
+   "column": "member_id",
+   "ref_table": "dim_member",
+   "ref_column": "member_id"
+  }
+ ]
+}

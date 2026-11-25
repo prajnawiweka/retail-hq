@@ -104,3 +104,15 @@ def growth(cur, prev):
     if cur is None or not prev:
         return None
     return round(cur / prev - 1, 4)
+
+
+def data_state() -> dict:
+    """Mode data aktif (dummy/asli) dari data/mode.json yang ditulis `uv run data-mode`."""
+    from retailhq_data.data_mode import read_state
+
+    return read_state()
+
+
+def report_date() -> str:
+    """Tanggal 'hari ini' untuk umur aset dan sisa kontrak: akhir data yang dimuat."""
+    return data_state().get("report_date") or "2026-10-31"

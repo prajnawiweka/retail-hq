@@ -93,11 +93,26 @@ def main() -> None:
             "Percakapan selesai dan riwayatnya dihapus. Kirim pertanyaan kapan saja untuk mulai lagi."
         )
 
+    async def status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+        from retailhq_agents.bq import data_state
+
+        st = data_state()
+        per = st.get("periode", {})
+        lines = [f"Mode data: {'DATA ASLI' if st.get('mode') == 'asli' else 'data dummy (simulasi)'}"]
+        if per:
+            lines.append(f"Periode: {per.get('mulai')} s.d. {per.get('akhir')}")
+        if st.get("loaded_at"):
+            lines.append(f"Dimuat: {st['loaded_at'].replace('T', ' ')[:16]}")
+        if st.get("department_tanpa_data"):
+            lines.append("Belum ada data: " + ", ".join(st["department_tanpa_data"]))
+        await update.message.reply_text("\n".join(lines))
+
     async def set_menu(app) -> None:
         await app.bot.set_my_commands([
             BotCommand("start", "Mulai dan lihat contoh pertanyaan"),
             BotCommand("selesai", "Akhiri percakapan"),
             BotCommand("reset", "Mulai topik baru"),
+            BotCommand("status", "Data yang sedang dipakai"),
             BotCommand("id", "Lihat user id Telegram kamu"),
         ])
 
@@ -119,6 +134,7 @@ def main() -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", start))
     app.add_handler(CommandHandler("id", whoami))
+    app.add_handler(CommandHandler("status", status))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler(["selesai", "end"], end))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))

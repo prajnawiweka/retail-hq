@@ -40,10 +40,14 @@ def safe(fn):
 
 
 def periode_data() -> dict:
-    """Rentang bulan yang tersedia di data, dan periode default (12 bulan terakhir)."""
+    """Mode data (dummy/asli), rentang bulan yang tersedia, periode default (12 bulan terakhir),
+    dan department yang datanya belum diunggah."""
     lo, hi = bq.month_bounds()
     p = bq.period()
-    return {"bulan_pertama": f"{lo:%Y-%m}", "bulan_terakhir": f"{hi:%Y-%m}", "periode_default": p["label"]}
+    st = bq.data_state()
+    return {"mode_data": st.get("mode", "dummy"), "dimuat": st.get("loaded_at"),
+            "bulan_pertama": f"{lo:%Y-%m}", "bulan_terakhir": f"{hi:%Y-%m}", "periode_default": p["label"],
+            "department_tanpa_data": st.get("department_tanpa_data", [])}
 
 
 def _order(urutan: str) -> str:

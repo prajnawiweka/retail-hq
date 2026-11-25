@@ -105,7 +105,10 @@ def main() -> None:
     mart = f"{project}.{env.get('BQ_DATASET_MART', 'mart')}"
     client = bigquery.Client(project=project, location=env.get("BQ_LOCATION") or None)
 
-    data: dict = {"generated_at": dt.datetime.now().isoformat(timespec="seconds")}
+    from retailhq_data.data_mode import read_state
+
+    data: dict = {"generated_at": dt.datetime.now().isoformat(timespec="seconds"),
+                  "mode": read_state().get("mode", "dummy")}
     for name, sql in QUERIES.items():
         data[name] = fetch(client, sql.format(mart=mart))
         print(f"  {name:<18} {len(data[name]['rows']):>6} baris")

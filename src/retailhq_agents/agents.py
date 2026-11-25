@@ -17,14 +17,35 @@ from retailhq_agents.tools import (
 )
 from retailhq_agents.tools.common import periode_data
 
-CONTEXT = """
+DUMMY_CONTEXT = """
 Konteks perusahaan: Retail HQ, jaringan 50 minimarket fiktif di Bali (8 kabupaten), 300 SKU,
-25 supplier, 1 DC di Denpasar. Data simulasi Nov 2024 s.d. Okt 2026. Struktur: Area Manager (AM)
-membawahi beberapa toko, Area Koordinator (AK) membawahi beberapa AM.
+25 supplier, 1 DC di Denpasar. Data simulasi Nov 2024 s.d. Okt 2026."""
+
+DEFINITIONS = """
+Struktur: Area Manager (AM) membawahi beberapa toko, Area Koordinator (AK) membawahi beberapa AM.
 Definisi: SPD = net sales per hari buka per toko; STD = jumlah struk; AMB = net sales / STD;
 achievement = net sales / target; EBITDA = gross profit - opex; OOS = SKU ditandai habis di toko;
 SOH 0 = stok sistem nol (tidak selalu sama dengan OOS).
 """
+
+
+def context() -> str:
+    """Konteks data untuk instruksi agent, mengikuti mode data aktif (dummy atau asli)."""
+    from retailhq_agents.bq import data_state
+
+    st = data_state()
+    if st.get("mode") != "asli":
+        return DUMMY_CONTEXT + DEFINITIONS
+    per = st.get("periode", {})
+    rows = st.get("tabel", {})
+    txt = (f"\nKonteks: DATA ASLI perusahaan, diunggah {st.get('loaded_at', '?')[:10]}. "
+           f"{rows.get('dim_store', '?')} toko, {rows.get('dim_product', '?')} SKU, "
+           f"periode {per.get('mulai', '?')} s.d. {per.get('akhir', '?')}.")
+    if st.get("department_tanpa_data"):
+        txt += (" Data untuk department berikut BELUM diunggah, jadi jawab bahwa datanya belum tersedia: "
+                + ", ".join(st["department_tanpa_data"]) + ".")
+    return txt + DEFINITIONS
+
 
 STYLE = """
 Gaya jawaban:
@@ -62,7 +83,7 @@ def _dept(name: str, title: str, focus: str, tools: list, model_name: str) -> Ll
         name=name,
         model=model(model_name),
         description=f"Department {title}: {focus}",
-        instruction=f"Kamu analis department {title} Retail HQ. Fokus: {focus}.\n{CONTEXT}\n{DEPT_RULES}\n{STYLE}",
+        instruction=f"Kamu analis department {title} Retail HQ. Fokus: {focus}.\n{context()}\n{DEPT_RULES}\n{STYLE}",
         tools=tools,
     )
 
@@ -105,7 +126,7 @@ def build_root(model_name: str | None = None) -> LlmAgent:
         model=model(model_name),
         description="General Manager Retail HQ, koordinator semua department.",
         instruction=f"""Kamu General Manager (GM) Retail HQ yang menjawab pertanyaan manajemen lewat Telegram.
-{CONTEXT}
+{context()}
 Cara kerja:
 - Department yang tersedia (masing-masing dipanggil sebagai tool):
 {roster}
@@ -117,7 +138,8 @@ Cara kerja:
   department kalau datanya mendukung (misal supplier bermasalah -> OOS -> sales kategori turun).
 - Pertanyaan yang tidak bisa dijawab data mana pun (misal harga kompetitor, cuaca, data pribadi karyawan):
   JANGAN panggil department. Jawab singkat 1-2 kalimat bahwa datanya tidak tersedia.
-- Untuk pertanyaan periode data, panggil periode_data.
+- Untuk pertanyaan periode data atau "data apa yang dipakai", panggil periode_data.
+- Kalau hasil tool kosong/nol semua untuk satu department, katakan datanya belum tersedia, jangan menyimpulkan nol.
 {STYLE}""",
         tools=[AgentTool(agent=d) for d in depts] + [periode_data],
     )

@@ -12,6 +12,7 @@ dependencies = [
     "pandas>=2.2",
     "google-adk>=2.15,<3",
     "python-telegram-bot>=22,<23",
+    "openpyxl>=3.1.5",
 ]
 
 [project.scripts]
@@ -22,6 +23,7 @@ export-dashboard = "retailhq_data.export_dashboard:main"
 rhq-ask = "retailhq_agents.cli:main"
 rhq-bot = "retailhq_agents.telegram_bot:main"
 rhq-eval = "retailhq_agents.evaluate:main"
+data-mode = "retailhq_data.data_mode:main"
 
 [build-system]
 requires = ["hatchling"]

@@ -11,7 +11,7 @@ Stack: Python (uv) → BigQuery (raw/staging/mart) → dbt Core → Google ADK +
 - [x] Tahap 1c: dbt staging + mart + tests (`uv run dbt-rhq build`)
 - [x] Tahap 2: dashboard Looker Studio + HTML (`uv run export-dashboard`)
 - [x] Tahap 3: 13 agent + bot Telegram (`uv run rhq-bot`, uji: `uv run rhq-eval`)
-- [ ] Tahap 4: Data Mode (upload data asli, validasi, reset)
+- [x] Tahap 4: Data Mode (`uv run data-mode`: upload data asli, validasi, reset)
 - [ ] Tahap 5: deploy Cloud Run + dokumentasi
 
 ## Mulai cepat
@@ -51,6 +51,22 @@ uv run rhq-eval                                # uji 13 pertanyaan berjawaban pa
 ```
 
 Isi `GEMINI_API_KEY` dan `TELEGRAM_BOT_TOKEN` di `.env`. Bot jalan selama Terminal terbuka (mode polling, tanpa server). Kuota gratis Gemini terbatas per menit; satu pertanyaan memakai beberapa panggilan model.
+
+## Data Mode (Tahap 4): pakai data asli
+
+Data dummy bisa diganti data asli tanpa mengubah kode. Format mengikuti kontrak di `config/data_contract.json` (32 tabel). Hanya 4 tabel yang wajib: `dim_store`, `dim_product`, `fact_sales_daily`, `fact_sales_category_daily`. Tabel lain boleh menyusul; department yang datanya belum ada akan menjawab "data belum tersedia".
+
+```bash
+uv run data-mode template                    # template kosong: data/templates/ (32 CSV + 1 Excel + KONTRAK_DATA.md)
+uv run data-mode validate data_asli.xlsx     # cek saja, tidak mengubah apa pun
+uv run data-mode load data_asli.xlsx         # validasi -> BigQuery -> dbt -> dashboard (minta konfirmasi)
+uv run data-mode status                      # mode aktif, periode, department tanpa data
+uv run data-mode reset                       # kembali ke data dummy
+```
+
+Input: satu Excel dengan sheet bernama tabel, atau folder berisi `<tabel>.csv` / `.xlsx`. Validasi menerima tanggal `YYYY-MM-DD` atau `dd/mm/yyyy`, angka `1.234.567` atau `Rp 1.234.567`, dan nama kolom huruf besar/spasi. Yang ditolak: kolom kunci hilang, tanggal/angka tidak valid, kunci duplikat, dan kode yang tidak ada di tabel master. File data asli disimpan di `data/real/` (tidak ikut git).
+
+`load` dan `reset` menimpa dataset raw dan mart di BigQuery. Setelahnya jalankan ulang bot supaya agent membaca data baru; `/status` di Telegram menampilkan data yang sedang dipakai.
 
 ## Data dummy
 
