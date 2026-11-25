@@ -10,7 +10,7 @@ Stack: Python (uv) → BigQuery (raw/staging/mart) → dbt Core → Google ADK +
 - [x] Tahap 1b: load ke BigQuery (`uv run load-bq`)
 - [x] Tahap 1c: dbt staging + mart + tests (`uv run dbt-rhq build`)
 - [x] Tahap 2: dashboard Looker Studio + HTML (`uv run export-dashboard`)
-- [ ] Tahap 3: 13 agent + bot Telegram (v1: GM + Operation, Finance, Supply Chain)
+- [x] Tahap 3: 13 agent + bot Telegram (`uv run rhq-bot`, uji: `uv run rhq-eval`)
 - [ ] Tahap 4: Data Mode (upload data asli, validasi, reset)
 - [ ] Tahap 5: deploy Cloud Run + dokumentasi
 
@@ -38,15 +38,16 @@ uv run export-dashboard --build-only  # build ulang HTML dari data.json (tanpa q
 
 Buka `dashboard/dist/index.html` langsung di browser. Spesifikasi Looker Studio: [docs/LOOKER_SPEC.md](docs/LOOKER_SPEC.md).
 
-## Agent & bot Telegram (Tahap 3, v1)
+## Agent & bot Telegram (Tahap 3)
 
-GM (koordinator) memanggil agent department yang relevan: Operation, Finance, Supply Chain. Agent membaca mart BigQuery lewat tool berisi query tetap (tidak menulis SQL bebas), memakai Gemini lewat Google ADK.
+GM (koordinator) memanggil agent department yang relevan dari 12 department: Operation, Merchandise, Finance, Supply Chain, DC, HR, Loss Prevention, IT, Marketing & CRM, ESG, Legal, Store Development. Agent membaca mart BigQuery lewat tool berisi query tetap (tidak menulis SQL bebas), memakai Gemini lewat Google ADK.
 
 ```bash
 uv run rhq-ask --tools                         # cek semua tool BigQuery (tanpa Gemini)
 uv run rhq-ask "Toko mana yang EBITDA-nya negatif?"
 uv run rhq-ask                                 # mode percakapan di Terminal
 uv run rhq-bot                                 # jalankan bot Telegram (Ctrl+C untuk berhenti)
+uv run rhq-eval                                # uji 13 pertanyaan berjawaban pasti (pola di answer key)
 ```
 
 Isi `GEMINI_API_KEY` dan `TELEGRAM_BOT_TOKEN` di `.env`. Bot jalan selama Terminal terbuka (mode polling, tanpa server). Kuota gratis Gemini terbatas per menit; satu pertanyaan memakai beberapa panggilan model.

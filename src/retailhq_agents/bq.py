@@ -23,6 +23,12 @@ def table(name: str) -> str:
     return f"`{s['GCP_PROJECT_ID']}.{s['BQ_DATASET_MART']}.{name}`"
 
 
+def staging_table(name: str) -> str:
+    """View staging (dipakai hanya untuk data master yang tidak ada di mart, misal aset IT)."""
+    s = settings()
+    return f"`{s['GCP_PROJECT_ID']}.{s.get('BQ_DATASET_STAGING') or 'staging'}.{name}`"
+
+
 def _plain(v):
     if isinstance(v, (dt.date, dt.datetime)):
         return v.isoformat()[:10]

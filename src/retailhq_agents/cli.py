@@ -13,14 +13,20 @@ import sys
 
 
 def _tool_check() -> None:
-    from retailhq_agents.tools import finance, operation, supply_chain
+    from retailhq_agents.agents import DEPARTMENTS
     from retailhq_agents.tools.common import periode_data
 
     print("periode_data:", periode_data())
     ok = True
-    for mod in (operation, finance, supply_chain):
+    need = {"tren_bulanan_toko": {"store_code": "DPS02"}, "tren_kategori_bulanan": {"category": "Minuman"}}
+    seen = set()
+    for name, _, _, mod in DEPARTMENTS:
+        print(f"[{name}]")
         for fn in mod.TOOLS:
-            kwargs = {"store_code": "DPS02"} if fn.__name__ == "tren_bulanan_toko" else {}
+            if fn.__name__ in seen:
+                continue
+            seen.add(fn.__name__)
+            kwargs = need.get(fn.__name__, {})
             out = fn(**kwargs)
             err = out.get("error") if isinstance(out, dict) else None
             ok &= not err
@@ -36,7 +42,7 @@ async def _chat(question: str | None) -> None:
     if question:
         print(await bot.ask("cli", question))
         return
-    print("Retail HQ — tanya apa saja soal Operation, Finance, Supply Chain. 'keluar' untuk berhenti.")
+    print("Retail HQ — tanya apa saja soal 12 department. 'keluar' untuk berhenti, 'reset' untuk topik baru.")
     while True:
         try:
             q = input("\n> ").strip()

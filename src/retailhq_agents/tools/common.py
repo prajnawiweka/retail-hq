@@ -44,3 +44,55 @@ def periode_data() -> dict:
     lo, hi = bq.month_bounds()
     p = bq.period()
     return {"bulan_pertama": f"{lo:%Y-%m}", "bulan_terakhir": f"{hi:%Y-%m}", "periode_default": p["label"]}
+
+
+def _order(urutan: str) -> str:
+    u = (urutan or "").lower()
+    return "asc" if u.startswith("terendah") or u == "asc" else "desc"
+
+
+def store_ranking(
+    metrics: dict[str, str],
+    metric: str,
+    urutan: str = "tertinggi",
+    limit: int = 10,
+    start_month: str = "",
+    end_month: str = "",
+    regency: str = "",
+    am_name: str = "",
+    peer_by: str = "",
+) -> dict:
+    """Ranking toko di mart_store_monthly untuk satu metrik, plus semua metrik lain dan rata-rata jaringan.
+
+    metrics: nama -> ekspresi agregat SQL (misal "safe_divide(sum(exits), sum(headcount_end))").
+    peer_by: kolom toko (misal 'store_type') untuk menghitung rasio terhadap rata-rata toko sejenis.
+    """
+    if metric not in metrics:
+        raise ValueError(f"metric harus salah satu dari: {', '.join(metrics)}")
+    p = bq.period(start_month, end_month)
+    cols = ",\n".join(f"{expr} as {name}" for name, expr in metrics.items())
+    peer = ""
+    if peer_by:
+        peer = (f", safe_divide({metric}, avg({metric}) over (partition by {peer_by})) - 1 "
+                f"as {metric}_vs_toko_sejenis")
+    sql = f"""
+        with t as (
+          select store_code, any_value(regency) as regency, any_value(am_name) as am_name,
+                 any_value(store_type) as store_type, any_value(location_type) as location_type,
+                 {cols}
+          from {bq.table('mart_store_monthly')}
+          where month between @start and @end and {STORE_FILTER}
+          group by store_code)
+        select * {peer} from t
+        order by {metric} {_order(urutan)} nulls last
+        limit @lim"""
+    avg_sql = f"""select {cols} from {bq.table('mart_store_monthly')}
+                  where month between @start and @end and {STORE_FILTER}"""
+    q = params(p, regency, am_name, lim=max(1, min(int(limit), 50)))
+    return {
+        **scope(p, regency, am_name),
+        "metric": metric,
+        "urutan": urutan,
+        "rata_rata_jaringan": bq.query(avg_sql, **q)[0],
+        "toko": bq.query(sql, **q),
+    }

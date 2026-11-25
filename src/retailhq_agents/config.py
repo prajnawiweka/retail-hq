@@ -19,7 +19,7 @@ def _read_env(path: Path) -> dict[str, str]:
                 continue
             k, v = line.split("=", 1)
             env[k.strip()] = v.split("#", 1)[0].strip().strip('"').strip("'")
-    keys = set(env) | {"GCP_PROJECT_ID", "BQ_LOCATION", "BQ_DATASET_MART", "GEMINI_API_KEY", "GEMINI_MODEL",
+    keys = set(env) | {"GCP_PROJECT_ID", "BQ_LOCATION", "BQ_DATASET_MART", "BQ_DATASET_STAGING", "GEMINI_API_KEY", "GEMINI_MODEL",
                        "GEMINI_FALLBACK_MODEL", "TELEGRAM_BOT_TOKEN", "TELEGRAM_ALLOWED_USER_IDS"}
     for k in keys:
         if os.environ.get(k):

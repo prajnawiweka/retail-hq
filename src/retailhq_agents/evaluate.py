@@ -45,9 +45,44 @@ CASES = [
         "harus": [["BLL05"]],
     },
     {
-        "nama": "Di luar cakupan: legal",
-        "tanya": "Kontrak sewa toko mana saja yang akan habis dalam 6 bulan ke depan?",
-        "harus": [["belum tersedia", "belum ada", "tidak tersedia", "belum punya", "di luar"]],
+        "nama": "Loss Prevention: shrinkage",
+        "tanya": "Toko mana yang kehilangan barangnya (selisih stock opname dan write-off hilang) paling tinggi, dan kasir mana yang perlu dicek?",
+        "harus": [["BDG01"], ["KSR2"]],
+    },
+    {
+        "nama": "HR: turnover & lembur",
+        "tanya": "Toko mana yang rasio lembur karyawannya paling tinggi, dan bagaimana turnover-nya?",
+        "harus": [["DPS01"], ["turnover", "keluar"]],
+    },
+    {
+        "nama": "IT: gangguan POS",
+        "tanya": "Toko mana yang paling sering mengalami gangguan POS, dan apa kemungkinan penyebabnya?",
+        "harus": [["TBN01"], ["2018", "tua", "lama", "umur"]],
+    },
+    {
+        "nama": "ESG: energi",
+        "tanya": "Toko mana yang pemakaian listrik chiller-nya paling boros dibanding toko sejenis?",
+        "harus": [["GIA01"]],
+    },
+    {
+        "nama": "Marketing: campaign rugi",
+        "tanya": "Sejak Juli 2025, campaign mana yang paling merugi dan kenapa?",
+        "harus": [["CMP-2025-07", "Promo Musim Liburan"]],
+    },
+    {
+        "nama": "Store Dev: toko baru",
+        "tanya": "Bagaimana kinerja toko-toko baru yang dibuka dalam 2 tahun terakhir, dan berapa lama payback-nya?",
+        "harus": [["BLL05", "Sukasada 02"]],
+    },
+    {
+        "nama": "Legal: kontrak jatuh tempo",
+        "tanya": "Kontrak sewa atau izin toko mana saja yang akan habis dalam 6 bulan ke depan?",
+        "harus": [["kontrak"], ["2026", "2027"]],
+    },
+    {
+        "nama": "Di luar data: harga kompetitor",
+        "tanya": "Berapa harga beras di minimarket kompetitor dekat DPS02?",
+        "harus": [["tidak tersedia", "belum tersedia", "tidak ada data", "tidak memiliki data", "tidak punya data"]],
     },
 ]
 

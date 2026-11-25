@@ -1,4 +1,4 @@
-"""Definisi agent: GM (koordinator) + department Operation, Finance, Supply Chain.
+"""Definisi agent: GM (koordinator) + 12 department.
 
 GM memanggil agent department sebagai tool (AgentTool), hanya yang relevan dengan pertanyaan,
 lalu menyusun jawaban gabungan. Agent department hanya bisa membaca data lewat tool BigQuery
@@ -12,7 +12,9 @@ from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
 
 from retailhq_agents.config import settings
-from retailhq_agents.tools import finance, operation, supply_chain
+from retailhq_agents.tools import (
+    dc, esg, finance, hr, it, legal, loss_prevention, marketing, merchandise, operation, store_dev, supply_chain,
+)
 from retailhq_agents.tools.common import periode_data
 
 CONTEXT = """
@@ -30,6 +32,7 @@ Gaya jawaban:
   pakai poin pendek, maksimal sekitar 12 baris kecuali diminta detail.
 - Setiap temuan menyebut angka spesifik dan pembandingnya (target, tahun lalu, atau rata-rata).
 - Format uang: Rp 12,3 jt / Rp 4,5 M (miliar). Persen 1 desimal, koma sebagai desimal.
+- Selalu sebut kode: toko (misal BDG03, boleh ditambah nama toko), campaign_id, supplier_id, SKU, kasir.
 - Akhiri dengan tindakan konkret (apa, oleh siapa: AK/AM/tim terkait).
 - Hanya pakai angka dari tool. Jangan mengarang angka, nama, atau penyebab. Kalau penyebab tidak
   terlihat di data, katakan perlu dicek, jangan menebak.
@@ -64,29 +67,39 @@ def _dept(name: str, title: str, focus: str, tools: list, model_name: str) -> Ll
     )
 
 
+# (nama tool, nama department, fokus, modul tool)
+DEPARTMENTS = [
+    ("operation", "Operation",
+     "penjualan toko, SPD, STD, AMB, achievement vs target, kinerja AM/AK, display compliance", operation),
+    ("merchandise", "Merchandise",
+     "kinerja dan margin per kategori, tren kategori, kepatuhan planogram (facing, price tag, shelf talker)", merchandise),
+    ("finance", "Finance & Accounting",
+     "gross margin, opex vs budget, EBITDA per toko, rasio sewa dan gaji terhadap sales", finance),
+    ("supply_chain", "Supply Chain",
+     "OOS, SOH 0, fill rate dan ketepatan supplier, SKU yang sering habis", supply_chain),
+    ("dc", "Distribution Center",
+     "pengiriman DC Denpasar ke toko: fill rate, ketepatan waktu, biaya kirim per unit", dc),
+    ("hr", "Human Resources",
+     "headcount, turnover karyawan, lembur, produktivitas (sales per jam kerja), biaya gaji", hr),
+    ("loss_prevention", "Loss Prevention",
+     "shrinkage stock opname, write-off barang hilang/expired, selisih kas, void dan refund kasir", loss_prevention),
+    ("it", "IT",
+     "tiket gangguan IT, downtime POS, waktu penyelesaian, umur aset POS/printer/CCTV", it),
+    ("marketing", "Marketing & CRM",
+     "ROI dan uplift campaign promo, member aktif, retensi member per tipe (lokal/turis/ekspat)", marketing),
+    ("esg", "ESG",
+     "efisiensi chiller per unit, listrik per m2 dan AC, biaya energi, sampah dan daur ulang, kantong plastik", esg),
+    ("legal", "Legal",
+     "kontrak sewa, izin, dan vendor yang akan/sudah berakhir, nilai perpanjangan", legal),
+    ("store_dev", "Store Development",
+     "proyek capex dan toko baru: kinerja sejak buka, EBITDA, payback", store_dev),
+]
+
+
 def build_root(model_name: str | None = None) -> LlmAgent:
     model_name = model_name or settings()["GEMINI_MODEL"]
-    ops = _dept(
-        "operation",
-        "Operation",
-        "penjualan toko, SPD, STD, AMB, achievement vs target, kinerja AM/AK, display compliance",
-        operation.TOOLS,
-        model_name,
-    )
-    fin = _dept(
-        "finance",
-        "Finance & Accounting",
-        "gross margin, opex vs budget, EBITDA per toko, rasio sewa dan gaji terhadap sales",
-        finance.TOOLS,
-        model_name,
-    )
-    sc = _dept(
-        "supply_chain",
-        "Supply Chain & DC",
-        "OOS, SOH 0, fill rate dan ketepatan supplier, SKU yang sering habis, pengiriman DC ke toko",
-        supply_chain.TOOLS,
-        model_name,
-    )
+    depts = [_dept(name, title, focus, mod.TOOLS, model_name) for name, title, focus, mod in DEPARTMENTS]
+    roster = "\n".join(f"  - {name}: {focus}" for name, _, focus, _ in DEPARTMENTS)
     return LlmAgent(
         name="gm",
         model=model(model_name),
@@ -94,15 +107,17 @@ def build_root(model_name: str | None = None) -> LlmAgent:
         instruction=f"""Kamu General Manager (GM) Retail HQ yang menjawab pertanyaan manajemen lewat Telegram.
 {CONTEXT}
 Cara kerja:
-- Tentukan department yang relevan, lalu panggil HANYA agent itu (operation, finance, supply_chain).
-  Pertanyaan umum ("bagaimana kinerja bulan ini", "apa masalah terbesar") boleh memanggil ketiganya.
+- Department yang tersedia (masing-masing dipanggil sebagai tool):
+{roster}
+- Panggil HANYA department yang relevan (biasanya 1-2). Untuk pertanyaan umum ("apa masalah terbesar",
+  "ringkas kinerja") panggil paling banyak 4: operation, finance, supply_chain, lalu satu yang paling relevan.
+  Kuota model gratis terbatas, jadi hindari memanggil semua department.
 - Teruskan pertanyaan ke agent department dengan jelas, termasuk periode, kabupaten, AM, atau toko yang disebut.
 - Gabungkan jawaban: prioritaskan 3 masalah dengan dampak terbesar, hubungkan sebab-akibat antar
   department kalau datanya mendukung (misal supplier bermasalah -> OOS -> sales kategori turun).
-- Pertanyaan di luar cakupan (HR, legal/kontrak, IT, marketing/campaign, ESG, loss prevention, store
-  development belum punya agent): JANGAN panggil agent lain. Jawab singkat 1-2 kalimat bahwa department
-  itu belum tersedia di versi ini, lalu sebut pertanyaan apa yang bisa dijawab.
+- Pertanyaan yang tidak bisa dijawab data mana pun (misal harga kompetitor, cuaca, data pribadi karyawan):
+  JANGAN panggil department. Jawab singkat 1-2 kalimat bahwa datanya tidak tersedia.
 - Untuk pertanyaan periode data, panggil periode_data.
 {STYLE}""",
-        tools=[AgentTool(agent=ops), AgentTool(agent=fin), AgentTool(agent=sc), periode_data],
+        tools=[AgentTool(agent=d) for d in depts] + [periode_data],
     )

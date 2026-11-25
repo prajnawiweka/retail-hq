@@ -19,13 +19,15 @@ log = logging.getLogger("retailhq_agents.telegram")
 LIMIT = 4000  # batas Telegram 4096 karakter per pesan
 
 WELCOME = (
-    "Halo, saya GM Retail HQ. Saya bisa menjawab pertanyaan soal Operation, Finance, dan Supply Chain "
-    "50 toko di Bali (data simulasi Nov 2024 – Okt 2026).\n\n"
+    "Halo, saya GM Retail HQ. Saya koordinasi 12 department: Operation, Merchandise, Finance, Supply Chain, "
+    "DC, HR, Loss Prevention, IT, Marketing, ESG, Legal, dan Store Development untuk 50 toko di Bali "
+    "(data simulasi Nov 2024 – Okt 2026).\n\n"
     "Contoh:\n"
     "• Apa 3 masalah terbesar 12 bulan terakhir?\n"
-    "• Toko mana yang achievement-nya paling rendah dan kenapa?\n"
-    "• Toko mana yang EBITDA-nya negatif?\n"
-    "• Supplier mana yang bermasalah dan dampaknya ke OOS?\n\n"
+    "• Toko mana yang EBITDA-nya negatif dan kenapa?\n"
+    "• Kasir mana yang transaksinya janggal?\n"
+    "• Kontrak sewa mana yang habis dalam 6 bulan?\n"
+    "• Toko mana yang paling boros listrik?\n\n"
     "/selesai untuk mengakhiri percakapan, /reset untuk mulai topik baru."
 )
 
