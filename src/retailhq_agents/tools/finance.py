@@ -46,9 +46,11 @@ def ringkasan_finance(start_month: str = "", end_month: str = "", regency: str =
 
 @safe
 def profitabilitas_toko(
-    urutan: str = "terendah", limit: int = 10, start_month: str = "", end_month: str = "", regency: str = ""
+    urutan: str = "terendah", limit: int = 15, start_month: str = "", end_month: str = "", regency: str = ""
 ) -> dict:
     """Ranking toko berdasarkan EBITDA % (urutan 'terendah' atau 'tertinggi', limit maks. 50).
+    Field toko_ebitda_negatif = JUMLAH TOTAL toko dengan EBITDA negatif di periode; daftar 'toko' bisa
+    lebih pendek karena dibatasi limit. Selalu laporkan jumlah total dari toko_ebitda_negatif.
     Tiap toko: net sales, EBITDA, EBITDA %, rent %, labor cost %, opex vs budget, lokasi, dan berapa bulan
     EBITDA-nya negatif dalam periode."""
     order = "asc" if urutan.lower().startswith("terendah") or urutan.lower() == "asc" else "desc"

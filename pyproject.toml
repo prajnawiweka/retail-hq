@@ -21,6 +21,7 @@ dbt-rhq = "retailhq_data.dbt_cli:main"
 export-dashboard = "retailhq_data.export_dashboard:main"
 rhq-ask = "retailhq_agents.cli:main"
 rhq-bot = "retailhq_agents.telegram_bot:main"
+rhq-eval = "retailhq_agents.evaluate:main"
 
 [build-system]
 requires = ["hatchling"]

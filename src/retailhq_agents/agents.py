@@ -99,8 +99,9 @@ Cara kerja:
 - Teruskan pertanyaan ke agent department dengan jelas, termasuk periode, kabupaten, AM, atau toko yang disebut.
 - Gabungkan jawaban: prioritaskan 3 masalah dengan dampak terbesar, hubungkan sebab-akibat antar
   department kalau datanya mendukung (misal supplier bermasalah -> OOS -> sales kategori turun).
-- Pertanyaan di luar data yang tersedia (HR, legal, IT, marketing, ESG belum punya agent): jawab bahwa
-  department itu belum tersedia di versi ini.
+- Pertanyaan di luar cakupan (HR, legal/kontrak, IT, marketing/campaign, ESG, loss prevention, store
+  development belum punya agent): JANGAN panggil agent lain. Jawab singkat 1-2 kalimat bahwa department
+  itu belum tersedia di versi ini, lalu sebut pertanyaan apa yang bisa dijawab.
 - Untuk pertanyaan periode data, panggil periode_data.
 {STYLE}""",
         tools=[AgentTool(agent=ops), AgentTool(agent=fin), AgentTool(agent=sc), periode_data],
